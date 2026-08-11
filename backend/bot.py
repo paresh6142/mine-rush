@@ -1,11 +1,15 @@
 import os
 import threading
 
-from flask import Flask
+from flask import Flask, request
 from supabase import create_client
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
 
+from telegram import Update
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    ContextTypes,
+)
 
 # ==========================================
 # ENVIRONMENT VARIABLES
@@ -36,10 +40,17 @@ supabase = create_client(
 
 
 # ==========================================
-# RENDER WEB SERVER
+# FLASK
 # ==========================================
 
 web = Flask(__name__)
+
+application = (
+    Application
+    .builder()
+    .token(TELEGRAM_BOT_TOKEN)
+    .build()
+)
 
 
 @web.route("/")
@@ -52,30 +63,17 @@ def health():
     return "OK"
 
 
-def run_web():
-    port = int(os.getenv("PORT", "10000"))
-
-    web.run(
-        host="0.0.0.0",
-        port=port
-    )
-
-
 # ==========================================
-# TELEGRAM /START
+# TELEGRAM START
 # ==========================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    if not update.effective_user:
-        return
 
     telegram_id = update.effective_user.id
     username = update.effective_user.username
 
     try:
 
-        # Check existing user
         result = (
             supabase
             .table("users")
@@ -84,25 +82,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             .execute()
         )
 
-        # ==================================
-        # NEW USER
-        # ==================================
-
         if not result.data:
 
-            new_user = {
+            supabase.table("users").insert({
                 "telegram_id": telegram_id,
                 "username": username,
                 "note_balance": 0,
                 "sikka_balance": 0,
                 "xp": 0,
                 "level": 1
-            }
-
-            supabase \
-                .table("users") \
-                .insert(new_user) \
-                .execute()
+            }).execute()
 
             message = (
                 "🔥 MINE RUSH 🔥\n\n"
@@ -111,28 +100,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "🪙 SIKKA: 0\n"
                 "⭐ Level: 1\n"
                 "⚡ XP: 0\n\n"
-                "Your account has been created successfully."
+                "Your account has been created!"
             )
-
-        # ==================================
-        # EXISTING USER
-        # ==================================
 
         else:
 
             user = result.data[0]
 
-            note = user.get("note_balance", 0)
-            sikka = user.get("sikka_balance", 0)
-            level = user.get("level", 1)
-            xp = user.get("xp", 0)
-
             message = (
                 "🔥 MINE RUSH 🔥\n\n"
-                f"🪙 NOTE: {note}\n"
-                f"🪙 SIKKA: {sikka}\n"
-                f"⭐ Level: {level}\n"
-                f"⚡ XP: {xp}\n\n"
+                f"🪙 NOTE: {user.get('note_balance', 0)}\n"
+                f"🪙 SIKKA: {user.get('sikka_balance', 0)}\n"
+                f"⭐ Level: {user.get('level', 1)}\n"
+                f"⚡ XP: {user.get('xp', 0)}\n\n"
                 "Welcome back! 🚀"
             )
 
@@ -143,58 +123,76 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("START ERROR:", e)
 
         await update.message.reply_text(
-            "⚠️ MINE RUSH mein temporary problem aa gayi.\n"
-            "Thodi der baad dobara /start bhejo."
+            "⚠️ Temporary error. Please try again."
         )
 
 
+application.add_handler(
+    CommandHandler("start", start)
+)
+
+
 # ==========================================
-# TELEGRAM BOT
+# TELEGRAM WEBHOOK
 # ==========================================
 
-def run_bot():
+@web.post("/telegram")
+def telegram_webhook():
 
-    application = (
-        Application
-        .builder()
-        .token(TELEGRAM_BOT_TOKEN)
-        .build()
+    try:
+
+        update = Update.de_json(
+            request.get_json(force=True),
+            application.bot
+        )
+
+        application.update_queue.put_nowait(update)
+
+        return "OK"
+
+    except Exception as e:
+
+        print("WEBHOOK ERROR:", e)
+
+        return "ERROR", 500
+
+
+# ==========================================
+# START
+# ==========================================
+
+def run_web():
+
+    port = int(os.getenv("PORT", "10000"))
+
+    web.run(
+        host="0.0.0.0",
+        port=port
     )
 
-    application.add_handler(
-        CommandHandler("start", start)
-    )
-
-    print("=================================")
-    print("🔥 MINE RUSH BOT STARTING...")
-    print("📡 TELEGRAM POLLING STARTING...")
-    print("🗄️ SUPABASE CONNECTED")
-    print("=================================")
-
-    # Remove old webhook and pending updates,
-    # then start polling.
-    application.run_polling(
-        drop_pending_updates=True
-    )
-
-
-# ==========================================
-# MAIN
-# ==========================================
 
 if __name__ == "__main__":
 
-    print("Starting MINE RUSH backend...")
+    print("=================================")
+    print("🔥 MINE RUSH WEBHOOK BOT")
+    print("🗄️ SUPABASE CONNECTED")
+    print("=================================")
 
-    # Start Render web server
-    web_thread = threading.Thread(
-        target=run_web,
-        daemon=True
+    # Initialize Telegram application
+    application.initialize()
+
+    # Set Telegram webhook
+    webhook_url = os.getenv(
+        "RENDER_EXTERNAL_URL",
+        ""
+    ) + "/telegram"
+
+    application.bot.set_webhook(
+        url=webhook_url,
+        drop_pending_updates=True
     )
 
-    web_thread.start()
+    print("WEBHOOK:", webhook_url)
 
-    print("🌐 WEB SERVER STARTED")
-
-    # Start Telegram bot
-    run_bot()
+    # Start Flask
+    run_web()
