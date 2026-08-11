@@ -1,16 +1,10 @@
 import os
 import asyncio
-import threading
 
 from flask import Flask, request
 from supabase import create_client
+from telegram import Bot, Update
 
-from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    ContextTypes,
-)
 
 # ==========================================
 # ENVIRONMENT VARIABLES
@@ -31,7 +25,7 @@ if not SUPABASE_SERVICE_ROLE_KEY:
 
 
 # ==========================================
-# SUPABASE
+# CONNECTIONS
 # ==========================================
 
 supabase = create_client(
@@ -39,20 +33,16 @@ supabase = create_client(
     SUPABASE_SERVICE_ROLE_KEY
 )
 
-
-# ==========================================
-# FLASK
-# ==========================================
+bot = Bot(
+    token=TELEGRAM_BOT_TOKEN
+)
 
 web = Flask(__name__)
 
-application = (
-    Application
-    .builder()
-    .token(TELEGRAM_BOT_TOKEN)
-    .build()
-)
 
+# ==========================================
+# HOME
+# ==========================================
 
 @web.route("/")
 def home():
@@ -62,75 +52,6 @@ def home():
 @web.route("/health")
 def health():
     return "OK"
-
-
-# ==========================================
-# TELEGRAM START COMMAND
-# ==========================================
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    telegram_id = update.effective_user.id
-    username = update.effective_user.username
-
-    try:
-
-        result = (
-            supabase
-            .table("users")
-            .select("*")
-            .eq("telegram_id", telegram_id)
-            .execute()
-        )
-
-        if not result.data:
-
-            supabase.table("users").insert({
-                "telegram_id": telegram_id,
-                "username": username,
-                "note_balance": 0,
-                "sikka_balance": 0,
-                "xp": 0,
-                "level": 1
-            }).execute()
-
-            message = (
-                "🔥 MINE RUSH 🔥\n\n"
-                "🎉 Welcome to MINE RUSH!\n\n"
-                "🪙 NOTE: 0\n"
-                "🪙 SIKKA: 0\n"
-                "⭐ Level: 1\n"
-                "⚡ XP: 0\n\n"
-                "Your account has been created!"
-            )
-
-        else:
-
-            user = result.data[0]
-
-            message = (
-                "🔥 MINE RUSH 🔥\n\n"
-                f"🪙 NOTE: {user.get('note_balance', 0)}\n"
-                f"🪙 SIKKA: {user.get('sikka_balance', 0)}\n"
-                f"⭐ Level: {user.get('level', 1)}\n"
-                f"⚡ XP: {user.get('xp', 0)}\n\n"
-                "Welcome back! 🚀"
-            )
-
-        await update.message.reply_text(message)
-
-    except Exception as e:
-
-        print("START ERROR:", e)
-
-        await update.message.reply_text(
-            "⚠️ Temporary error. Please try again."
-        )
-
-
-application.add_handler(
-    CommandHandler("start", start)
-)
 
 
 # ==========================================
@@ -144,71 +65,158 @@ def telegram_webhook():
 
         data = request.get_json(force=True)
 
+        print("📩 TELEGRAM UPDATE RECEIVED")
+
         update = Update.de_json(
             data,
-            application.bot
+            bot
         )
 
-        # Put update into Telegram application's queue
-        application.update_queue.put_nowait(update)
+        if update.message:
 
-        print("📩 TELEGRAM UPDATE RECEIVED")
+            message = update.message
+
+            if message.text == "/start":
+
+                telegram_id = message.from_user.id
+                username = message.from_user.username
+
+                print(
+                    f"👤 START FROM USER: {telegram_id}"
+                )
+
+                # Check user
+                result = (
+                    supabase
+                    .table("users")
+                    .select("*")
+                    .eq(
+                        "telegram_id",
+                        telegram_id
+                    )
+                    .execute()
+                )
+
+                # ==================================
+                # NEW USER
+                # ==================================
+
+                if not result.data:
+
+                    supabase.table("users").insert({
+                        "telegram_id": telegram_id,
+                        "username": username,
+                        "note_balance": 0,
+                        "sikka_balance": 0,
+                        "xp": 0,
+                        "level": 1
+                    }).execute()
+
+                    note = 0
+                    sikka = 0
+                    xp = 0
+                    level = 1
+
+                    welcome = True
+
+                # ==================================
+                # EXISTING USER
+                # ==================================
+
+                else:
+
+                    user = result.data[0]
+
+                    note = user.get(
+                        "note_balance",
+                        0
+                    )
+
+                    sikka = user.get(
+                        "sikka_balance",
+                        0
+                    )
+
+                    xp = user.get(
+                        "xp",
+                        0
+                    )
+
+                    level = user.get(
+                        "level",
+                        1
+                    )
+
+                    welcome = False
+
+
+                # ==================================
+                # MESSAGE
+                # ==================================
+
+                if welcome:
+
+                    text = (
+                        "🔥 MINE RUSH 🔥\n\n"
+                        "🎉 Welcome to MINE RUSH!\n\n"
+                        f"🪙 NOTE: {note}\n"
+                        f"🪙 SIKKA: {sikka}\n"
+                        f"⭐ Level: {level}\n"
+                        f"⚡ XP: {xp}\n\n"
+                        "Your account has been created! 🚀"
+                    )
+
+                else:
+
+                    text = (
+                        "🔥 MINE RUSH 🔥\n\n"
+                        f"🪙 NOTE: {note}\n"
+                        f"🪙 SIKKA: {sikka}\n"
+                        f"⭐ Level: {level}\n"
+                        f"⚡ XP: {xp}\n\n"
+                        "Welcome back! 🚀"
+                    )
+
+
+                # Send Telegram message
+                asyncio.run(
+                    bot.send_message(
+                        chat_id=telegram_id,
+                        text=text
+                    )
+                )
+
+                print("✅ START RESPONSE SENT")
+
 
         return "OK"
 
+
     except Exception as e:
 
-        print("WEBHOOK ERROR:", e)
+        print("❌ WEBHOOK ERROR:")
+        print(e)
 
         return "ERROR", 500
 
 
 # ==========================================
-# TELEGRAM APPLICATION LOOP
-# ==========================================
-
-async def telegram_loop():
-
-    await application.initialize()
-
-    await application.start()
-
-    print("=================================")
-    print("🔥 MINE RUSH BOT STARTED")
-    print("📡 TELEGRAM UPDATE PROCESSOR RUNNING")
-    print("🗄️ SUPABASE CONNECTED")
-    print("=================================")
-
-    # Keep Telegram application running
-    await asyncio.Event().wait()
-
-
-def run_telegram():
-
-    asyncio.run(
-        telegram_loop()
-    )
-
-
-# ==========================================
-# START
+# START SERVER
 # ==========================================
 
 if __name__ == "__main__":
 
-    # Start Telegram application
-    telegram_thread = threading.Thread(
-        target=run_telegram,
-        daemon=True
-    )
+    print("=================================")
+    print("🔥 MINE RUSH BACKEND STARTING")
+    print("🗄️ SUPABASE CONNECTED")
+    print("📡 WEBHOOK MODE")
+    print("=================================")
 
-    telegram_thread.start()
-
-    print("🌐 MINE RUSH WEB SERVER STARTING...")
-
-    # Start Flask
     port = int(
-        os.getenv("PORT", "10000")
+        os.getenv(
+            "PORT",
+            "10000"
+        )
     )
 
     web.run(
