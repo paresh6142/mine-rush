@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MINE RUSH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            background: #0d1117;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            padding: 25px 15px;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .balance {
+            background: #171d27;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .coins {
+            font-size: 38px;
+            font-weight: bold;
+            margin: 8px;
+        }
+
+        .rupees {
+            color: #9da7b5;
+        }
+
+        .mine-button {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: none;
+            background: #f5a623;
+            font-size: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 30px #f5a62355;
+        }
+
+        .mine-button:active {
+            transform: scale(0.95);
+        }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .stat {
+            flex: 1;
+            background: #171d27;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .stat-title {
+            color: #9da7b5;
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .menu button {
+            padding: 18px 10px;
+            border: 1px solid #293241;
+            background: #171d27;
+            color: white;
+            border-radius: 15px;
+            font-size: 15px;
+        }
+
+        .soon {
+            color: #f5a623;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🔥 MINE RUSH</h1>
+
+    <div class="balance">
+        <div>💰 MINE BALANCE</div>
+
+        <div class="coins" id="coins">
+            0
+        </div>
+
+        <div class="rupees">
+            ≈ ₹<span id="rupees">0.00</span>
+        </div>
+
+        <div class="rupees">
+            10,000 MINE = ₹1
+        </div>
+    </div>
+
+    <button class="mine-button" onclick="mine()">
+        ⛏️<br>
+        MINE
+    </button>
+
+    <div class="stats">
+
+        <div class="stat">
+            <div class="stat-title">⚡ ENERGY</div>
+            <div class="stat-value">
+                <span id="energy">100</span>/100
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">⚡ BOOST</div>
+            <div class="stat-value">
+                +<span id="boost">0.00</span>%
+            </div>
+        </div>
+
+    </div>
+
+    <div class="menu">
+
+        <button onclick="alert('Referral system coming soon')">
+            👥<br>REFER
+        </button>
+
+        <button onclick="alert('🎁 Daily Bonus coming soon')">
+            🎁<br>BONUS
+        </button>
+
+        <button onclick="alert('🛒 MINE Shop coming soon')">
+            🛒<br>SHOP
+        </button>
+
+        <button onclick="alert('💸 WITHDRAWAL SOON')">
+            💸<br>WITHDRAW
+        </button>
+
+    </div>
+
+    <div class="soon">
+        🚧 Withdrawal Soon
+    </div>
+
+</div>
+
+<script>
+
+let coins = 0;
+let energy = 100;
+
+function mine() {
+
+    if (energy <= 0) {
+        alert("⚡ Energy khatam ho gayi!");
+        return;
+    }
+
+    coins = coins + 1;
+    energy = energy - 1;
+
+    document.getElementById("coins").innerText =
+        coins.toLocaleString();
+
+    document.getElementById("rupees").innerText =
+        (coins / 10000).toFixed(2);
+
+    document.getElementById("energy").innerText =
+        energy;
+}
+
+</script>
+
+</body>
+</html>
