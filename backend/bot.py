@@ -1,9 +1,11 @@
 import os
-import asyncio
+import json
+import urllib.request
+import urllib.parse
+import traceback
 
 from flask import Flask, request
 from supabase import create_client
-from telegram import Bot, Update
 
 
 # ==========================================
@@ -13,6 +15,7 @@ from telegram import Bot, Update
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
 
 if not TELEGRAM_BOT_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN is missing")
@@ -25,7 +28,7 @@ if not SUPABASE_SERVICE_ROLE_KEY:
 
 
 # ==========================================
-# CONNECTIONS
+# SUPABASE
 # ==========================================
 
 supabase = create_client(
@@ -33,16 +36,13 @@ supabase = create_client(
     SUPABASE_SERVICE_ROLE_KEY
 )
 
-bot = Bot(
-    token=TELEGRAM_BOT_TOKEN
-)
+
+# ==========================================
+# FLASK
+# ==========================================
 
 web = Flask(__name__)
 
-
-# ==========================================
-# HOME
-# ==========================================
 
 @web.route("/")
 def home():
@@ -55,138 +55,176 @@ def health():
 
 
 # ==========================================
+# SEND TELEGRAM MESSAGE
+# ==========================================
+
+def send_telegram_message(chat_id, text):
+
+    url = (
+        f"https://api.telegram.org/"
+        f"bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    )
+
+    data = urllib.parse.urlencode({
+        "chat_id": chat_id,
+        "text": text
+    }).encode("utf-8")
+
+    request_data = urllib.request.Request(
+        url,
+        data=data,
+        method="POST"
+    )
+
+    with urllib.request.urlopen(
+        request_data,
+        timeout=15
+    ) as response:
+
+        result = response.read().decode("utf-8")
+
+        print("TELEGRAM RESPONSE:", result)
+
+
+# ==========================================
 # TELEGRAM WEBHOOK
 # ==========================================
 
 @web.post("/telegram")
 def telegram_webhook():
 
+    print("📩 TELEGRAM UPDATE RECEIVED")
+
     try:
 
         data = request.get_json(force=True)
 
-        print("📩 TELEGRAM UPDATE RECEIVED")
-
-        update = Update.de_json(
-            data,
-            bot
+        print(
+            "UPDATE:",
+            json.dumps(data, ensure_ascii=False)
         )
 
-        if update.message:
+        message = data.get("message")
 
-            message = update.message
+        if not message:
+            return "OK"
 
-            if message.text == "/start":
+        chat = message.get("chat", {})
+        user = message.get("from", {})
 
-                telegram_id = message.from_user.id
-                username = message.from_user.username
+        chat_id = chat.get("id")
+        text = message.get("text", "")
 
-                print(
-                    f"👤 START FROM USER: {telegram_id}"
+        telegram_id = user.get("id")
+        username = user.get("username")
+
+        print("USER ID:", telegram_id)
+        print("USERNAME:", username)
+        print("TEXT:", text)
+
+
+        # ==================================
+        # /START
+        # ==================================
+
+        if text.strip() == "/start":
+
+            # Check user in Supabase
+            result = (
+                supabase
+                .table("users")
+                .select("*")
+                .eq(
+                    "telegram_id",
+                    telegram_id
+                )
+                .execute()
+            )
+
+
+            # ==================================
+            # NEW USER
+            # ==================================
+
+            if not result.data:
+
+                print("NEW USER")
+
+                supabase.table("users").insert({
+                    "telegram_id": telegram_id,
+                    "username": username,
+                    "note_balance": 0,
+                    "sikka_balance": 0,
+                    "xp": 0,
+                    "level": 1
+                }).execute()
+
+                note = 0
+                sikka = 0
+                xp = 0
+                level = 1
+
+                text_to_send = (
+                    "🔥 MINE RUSH 🔥\n\n"
+                    "🎉 Welcome to MINE RUSH!\n\n"
+                    f"🪙 NOTE: {note}\n"
+                    f"🪙 SIKKA: {sikka}\n"
+                    f"⭐ Level: {level}\n"
+                    f"⚡ XP: {xp}\n\n"
+                    "Your account has been created! 🚀"
                 )
 
-                # Check user
-                result = (
-                    supabase
-                    .table("users")
-                    .select("*")
-                    .eq(
-                        "telegram_id",
-                        telegram_id
-                    )
-                    .execute()
+
+            # ==================================
+            # EXISTING USER
+            # ==================================
+
+            else:
+
+                print("EXISTING USER")
+
+                user_data = result.data[0]
+
+                note = user_data.get(
+                    "note_balance",
+                    0
                 )
 
-                # ==================================
-                # NEW USER
-                # ==================================
-
-                if not result.data:
-
-                    supabase.table("users").insert({
-                        "telegram_id": telegram_id,
-                        "username": username,
-                        "note_balance": 0,
-                        "sikka_balance": 0,
-                        "xp": 0,
-                        "level": 1
-                    }).execute()
-
-                    note = 0
-                    sikka = 0
-                    xp = 0
-                    level = 1
-
-                    welcome = True
-
-                # ==================================
-                # EXISTING USER
-                # ==================================
-
-                else:
-
-                    user = result.data[0]
-
-                    note = user.get(
-                        "note_balance",
-                        0
-                    )
-
-                    sikka = user.get(
-                        "sikka_balance",
-                        0
-                    )
-
-                    xp = user.get(
-                        "xp",
-                        0
-                    )
-
-                    level = user.get(
-                        "level",
-                        1
-                    )
-
-                    welcome = False
-
-
-                # ==================================
-                # MESSAGE
-                # ==================================
-
-                if welcome:
-
-                    text = (
-                        "🔥 MINE RUSH 🔥\n\n"
-                        "🎉 Welcome to MINE RUSH!\n\n"
-                        f"🪙 NOTE: {note}\n"
-                        f"🪙 SIKKA: {sikka}\n"
-                        f"⭐ Level: {level}\n"
-                        f"⚡ XP: {xp}\n\n"
-                        "Your account has been created! 🚀"
-                    )
-
-                else:
-
-                    text = (
-                        "🔥 MINE RUSH 🔥\n\n"
-                        f"🪙 NOTE: {note}\n"
-                        f"🪙 SIKKA: {sikka}\n"
-                        f"⭐ Level: {level}\n"
-                        f"⚡ XP: {xp}\n\n"
-                        "Welcome back! 🚀"
-                    )
-
-
-                # Send Telegram message
-                asyncio.run(
-                    bot.send_message(
-                        chat_id=telegram_id,
-                        text=text
-                    )
+                sikka = user_data.get(
+                    "sikka_balance",
+                    0
                 )
 
-                print("✅ START RESPONSE SENT")
+                xp = user_data.get(
+                    "xp",
+                    0
+                )
+
+                level = user_data.get(
+                    "level",
+                    1
+                )
+
+                text_to_send = (
+                    "🔥 MINE RUSH 🔥\n\n"
+                    f"🪙 NOTE: {note}\n"
+                    f"🪙 SIKKA: {sikka}\n"
+                    f"⭐ Level: {level}\n"
+                    f"⚡ XP: {xp}\n\n"
+                    "Welcome back! 🚀"
+                )
+
+
+            # ==================================
+            # SEND RESPONSE
+            # ==================================
+
+            send_telegram_message(
+                chat_id,
+                text_to_send
+            )
+
+            print("✅ START RESPONSE SENT")
 
 
         return "OK"
@@ -194,10 +232,13 @@ def telegram_webhook():
 
     except Exception as e:
 
-        print("❌ WEBHOOK ERROR:")
-        print(e)
+        print("❌ WEBHOOK ERROR")
+        print(str(e))
+        traceback.print_exc()
 
-        return "ERROR", 500
+        # Telegram ko 500 na bheje,
+        # warna same update baar-baar retry ho sakta hai.
+        return "OK"
 
 
 # ==========================================
