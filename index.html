@@ -178,15 +178,7 @@
 let coins = 0;
 let energy = 100;
 
-function mine() {
-
-    if (energy <= 0) {
-        alert("⚡ Energy khatam ho gayi!");
-        return;
-    }
-
-    coins = coins + 1;
-    energy = energy - 1;
+function updateScreen() {
 
     document.getElementById("coins").innerText =
         coins.toLocaleString();
@@ -197,6 +189,30 @@ function mine() {
     document.getElementById("energy").innerText =
         energy;
 }
+
+function mine() {
+
+    if (energy <= 0) {
+        alert("⚡ Energy khatam ho gayi!");
+        return;
+    }
+
+    coins = coins + 1;
+    energy = energy - 1;
+
+    updateScreen();
+}
+
+/* Every 30 seconds: +1 Energy */
+
+setInterval(function() {
+
+    if (energy < 100) {
+        energy = energy + 1;
+        updateScreen();
+    }
+
+}, 30000);
 
 </script>
 
