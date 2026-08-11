@@ -1,4 +1,2 @@
 supabase
-python-dotenv
-python-telegram-bot
 Flask
