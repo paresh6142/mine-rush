@@ -134,6 +134,7 @@ def run_bot():
     )
 
     print("MINE RUSH BOT STARTING...")
+    print("STARTING TELEGRAM POLLING...")
 
     application.run_polling(drop_pending_updates=True
 )
