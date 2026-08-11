@@ -135,7 +135,8 @@ def run_bot():
 
     print("MINE RUSH BOT STARTING...")
 
-    application.run_polling()
+    application.run_polling(drop_pending_updates=True
+)
 
 
 # =========================
