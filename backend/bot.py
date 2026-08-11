@@ -1,4 +1,5 @@
 import os
+import asyncio
 import threading
 
 from flask import Flask, request
@@ -64,7 +65,7 @@ def health():
 
 
 # ==========================================
-# TELEGRAM START
+# TELEGRAM START COMMAND
 # ==========================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -141,12 +142,17 @@ def telegram_webhook():
 
     try:
 
+        data = request.get_json(force=True)
+
         update = Update.de_json(
-            request.get_json(force=True),
+            data,
             application.bot
         )
 
+        # Put update into Telegram application's queue
         application.update_queue.put_nowait(update)
+
+        print("📩 TELEGRAM UPDATE RECEIVED")
 
         return "OK"
 
@@ -158,41 +164,54 @@ def telegram_webhook():
 
 
 # ==========================================
+# TELEGRAM APPLICATION LOOP
+# ==========================================
+
+async def telegram_loop():
+
+    await application.initialize()
+
+    await application.start()
+
+    print("=================================")
+    print("🔥 MINE RUSH BOT STARTED")
+    print("📡 TELEGRAM UPDATE PROCESSOR RUNNING")
+    print("🗄️ SUPABASE CONNECTED")
+    print("=================================")
+
+    # Keep Telegram application running
+    await asyncio.Event().wait()
+
+
+def run_telegram():
+
+    asyncio.run(
+        telegram_loop()
+    )
+
+
+# ==========================================
 # START
 # ==========================================
 
-def run_web():
+if __name__ == "__main__":
 
-    port = int(os.getenv("PORT", "10000"))
+    # Start Telegram application
+    telegram_thread = threading.Thread(
+        target=run_telegram,
+        daemon=True
+    )
+
+    telegram_thread.start()
+
+    print("🌐 MINE RUSH WEB SERVER STARTING...")
+
+    # Start Flask
+    port = int(
+        os.getenv("PORT", "10000")
+    )
 
     web.run(
         host="0.0.0.0",
         port=port
     )
-
-
-if __name__ == "__main__":
-
-    print("=================================")
-    print("🔥 MINE RUSH WEBHOOK BOT")
-    print("🗄️ SUPABASE CONNECTED")
-    print("=================================")
-
-    # Initialize Telegram application
-    application.initialize()
-
-    # Set Telegram webhook
-    webhook_url = os.getenv(
-        "RENDER_EXTERNAL_URL",
-        ""
-    ) + "/telegram"
-
-    application.bot.set_webhook(
-        url=webhook_url,
-        drop_pending_updates=True
-    )
-
-    print("WEBHOOK:", webhook_url)
-
-    # Start Flask
-    run_web()
