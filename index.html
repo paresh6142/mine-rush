@@ -1,120 +1,1538 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>MINE RUSH</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
-:root{--bg:#060c14;--card:#0d1826;--card2:#0a1320;--line:#21344b;--gold:#ffad00;--green:#00d98b;--text:#f7f9fc;--muted:#8998aa}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -15%,#17344d 0,#060c14 52%);color:var(--text);font-family:Arial,sans-serif;padding:14px 14px 92px}.app{max-width:680px;margin:auto}
-button{font:inherit;color:inherit;cursor:pointer}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.brand{display:flex;align-items:center;gap:10px}.logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#ffc21a,#ed8300);display:grid;place-items:center;font-size:26px}.brand h1{font-size:24px;margin:0}.welcome{color:var(--muted);font-size:14px;margin-top:3px}.online{font-size:12px;color:#00e99a;border:1px solid #00d98a66;border-radius:18px;padding:7px 10px}
-.card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:20px;padding:15px;margin:11px 0;box-shadow:0 10px 30px #0005}.head,.title,.meta,.row{display:flex;justify-content:space-between;align-items:center}.head{color:var(--muted);font-size:13px}.boost{color:#ffc21a}.balance{font-size:47px;font-weight:800;line-height:1.05;margin-top:4px}.rupee{color:var(--muted);font-size:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:13px}.stat{background:#07101c;border:1px solid #1c2d42;border-radius:14px;padding:9px 3px;text-align:center}.stat small{display:block;color:var(--muted);font-size:10px;margin:4px 0}.stat b{font-size:16px}
-.title{font-size:21px;font-weight:bold}.energy{font-size:12px;color:#ffc21a}.minebox{display:flex;justify-content:space-around;align-items:center;padding:15px 0 7px}.pick{font-size:70px;filter:drop-shadow(0 8px 10px #0008);animation:float 2.2s ease-in-out infinite}@keyframes float{50%{transform:translateY(-7px) rotate(-4deg)}}.minebtn{width:148px;height:148px;border:0;border-radius:50%;background:linear-gradient(145deg,#ffc21a,#ff8d00);color:#111;font-weight:800;font-size:23px;box-shadow:inset 0 -9px 0 #db7000,0 14px 30px #ff9d0048}.minebtn:active{transform:scale(.95)}.timer{text-align:center;font-size:31px;font-weight:800;margin-top:3px}.sub{text-align:center;color:var(--muted);font-size:12px;margin-top:3px}.progress{height:8px;background:#07101b;border-radius:10px;overflow:hidden;margin-top:13px}.bar{height:100%;width:0;background:linear-gradient(90deg,#ff9000,#ffd21a)}.meta{color:var(--muted);font-size:12px;margin-top:7px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.tile{background:#0a1522;border:1px solid var(--line);border-radius:16px;padding:12px 5px;text-align:center;min-height:76px}.tile:active{transform:scale(.97)}.tile .ico{font-size:25px}.tile b{display:block;color:#ffc21a;font-size:12px;margin-top:5px}.tile small{color:var(--muted);font-size:10px}
-.feature{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.feature .tile{min-height:91px}.feature .desc{font-size:10px;color:var(--muted);margin-top:4px}.feature .action{margin-top:8px;padding:7px 4px;font-size:10px}
-.action{border:0;border-radius:11px;background:linear-gradient(90deg,#ff9700,#ffc21a);color:#111;font-weight:800;padding:10px;width:100%}.secondary{background:#142438;color:#fff;border:1px solid #2b425c}
-.nav{position:fixed;left:50%;bottom:7px;transform:translateX(-50%);width:min(650px,calc(100% - 14px));display:grid;grid-template-columns:repeat(5,1fr);background:#07111df2;border:1px solid #22374e;border-radius:20px;padding:6px;z-index:10}.nav button{border:0;background:none;color:#8392a5;font-size:10px}.nav i{display:block;font-style:normal;font-size:20px}.nav .on{color:#ffc21a}
-.modal{position:fixed;inset:0;background:#000a;display:none;align-items:flex-end;z-index:20}.modal.show{display:flex}.sheet{width:min(680px,100%);margin:auto;background:#0a1420;border:1px solid #263b53;border-radius:23px 23px 0 0;padding:17px;max-height:82vh;overflow:auto}.sheethead{display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:800}.close{width:40px;height:40px;border:0;border-radius:11px;background:#182a3d}.row{padding:12px 0;border-bottom:1px solid #1c2d40}.row span{color:var(--muted)}.note{color:var(--muted);font-size:12px;line-height:1.5}.input{width:100%;padding:12px;border-radius:11px;border:1px solid #294059;background:#07111d;color:#fff;margin:5px 0 10px;outline:none}.warn{background:#2a1b08;border:1px solid #6b4b10;border-radius:12px;padding:10px;color:#ffd36a;font-size:12px}
-@media(max-width:430px){.balance{font-size:43px}.minebtn{width:135px;height:135px}.pick{font-size:62px}.feature{grid-template-columns:repeat(2,1fr)}}
+:root{
+  --bg:#050b12;
+  --card:#0c1724;
+  --card2:#101f2f;
+  --line:#20364c;
+  --gold:#ffb300;
+  --orange:#ff8500;
+  --green:#00d98b;
+  --red:#ff5757;
+  --text:#f7f9fc;
+  --muted:#8798aa;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  padding:14px 14px 90px;
+  background:
+    radial-gradient(circle at 50% -10%,#173953 0,#07101a 42%,#050b12 75%);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+
+.app{
+  max-width:680px;
+  margin:auto;
+}
+
+button{
+  font:inherit;
+  cursor:pointer;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.logo{
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#ffc21a,#ed7900);
+  font-size:25px;
+}
+
+.brand h1{
+  margin:0;
+  font-size:23px;
+}
+
+.welcome{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.online{
+  color:var(--green);
+  border:1px solid #00d98b55;
+  padding:7px 10px;
+  border-radius:20px;
+  font-size:11px;
+}
+
+/* CARDS */
+
+.card{
+  margin:11px 0;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:linear-gradient(145deg,var(--card),#09131f);
+  box-shadow:0 10px 30px #0006;
+}
+
+.label{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.balance{
+  margin-top:5px;
+  font-size:45px;
+  font-weight:900;
+}
+
+.rupee{
+  color:var(--green);
+  font-size:14px;
+  margin-top:4px;
+}
+
+.balanceStats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:15px;
+}
+
+.stat{
+  padding:10px 5px;
+  text-align:center;
+  border-radius:14px;
+  background:#07111c;
+  border:1px solid #1c3044;
+}
+
+.stat small{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-top:5px;
+}
+
+.stat b{
+  font-size:15px;
+}
+
+/* MINING */
+
+.sectionTitle{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:20px;
+  font-weight:800;
+}
+
+.energy{
+  color:var(--gold);
+  font-size:12px;
+}
+
+.mineArea{
+  text-align:center;
+  padding:20px 0 10px;
+}
+
+.pick{
+  font-size:62px;
+  animation:float 2s infinite ease-in-out;
+}
+
+@keyframes float{
+  50%{transform:translateY(-7px) rotate(-5deg)}
+}
+
+.mineButton{
+  width:145px;
+  height:145px;
+  border:0;
+  border-radius:50%;
+  background:linear-gradient(145deg,#ffc21a,#ff8500);
+  color:#111;
+  font-size:22px;
+  font-weight:900;
+  box-shadow:
+    inset 0 -9px 0 #d96c00,
+    0 15px 35px #ff980044;
+}
+
+.mineButton:active{
+  transform:scale(.95);
+}
+
+.mineButton:disabled{
+  opacity:.55;
+}
+
+.timer{
+  margin-top:8px;
+  text-align:center;
+  font-size:29px;
+  font-weight:900;
+}
+
+.miningInfo{
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:4px;
+}
+
+.progress{
+  height:8px;
+  margin-top:14px;
+  background:#050c14;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progressBar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#ff8500,#ffd21a);
+  transition:.3s;
+}
+
+.mineMeta{
+  display:flex;
+  justify-content:space-between;
+  margin-top:8px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+/* MINERS */
+
+.titleRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:11px;
+}
+
+.titleRow h2{
+  margin:0;
+  font-size:20px;
+}
+
+.view{
+  color:var(--gold);
+  font-size:11px;
+}
+
+.miner{
+  padding:13px;
+  margin-top:9px;
+  border:1px solid var(--line);
+  background:#091522;
+  border-radius:16px;
+}
+
+.minerTop{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.minerIcon{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:#13263a;
+  font-size:25px;
+}
+
+.minerInfo{
+  flex:1;
+}
+
+.minerInfo b{
+  font-size:15px;
+}
+
+.minerInfo small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+  font-size:11px;
+}
+
+.minerBottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
+}
+
+.earning{
+  color:var(--green);
+  font-size:12px;
+}
+
+.buy{
+  border:0;
+  border-radius:10px;
+  padding:8px 13px;
+  background:linear-gradient(90deg,#ff9500,#ffc21a);
+  color:#111;
+  font-weight:800;
+  font-size:11px;
+}
+
+/* FEATURES */
+
+.features{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.feature{
+  padding:13px 5px;
+  text-align:center;
+  border-radius:15px;
+  border:1px solid var(--line);
+  background:#091522;
+}
+
+.featureIcon{
+  font-size:24px;
+}
+
+.feature b{
+  display:block;
+  color:var(--gold);
+  margin-top:6px;
+  font-size:11px;
+}
+
+/* NAV */
+
+.nav{
+  position:fixed;
+  z-index:10;
+  bottom:7px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(650px,calc(100% - 14px));
+  padding:6px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  background:#07111df5;
+  border:1px solid #22374e;
+  border-radius:20px;
+}
+
+.nav button{
+  border:0;
+  background:none;
+  color:#7f91a4;
+  font-size:9px;
+}
+
+.nav i{
+  display:block;
+  font-style:normal;
+  font-size:19px;
+  margin-bottom:2px;
+}
+
+.nav .active{
+  color:var(--gold);
+}
+
+/* MODAL */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  display:none;
+  align-items:flex-end;
+  background:#000b;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.sheet{
+  width:min(680px,100%);
+  max-height:82vh;
+  overflow:auto;
+  margin:auto;
+  padding:17px;
+  border-radius:22px 22px 0 0;
+  background:#091521;
+  border:1px solid #263c53;
+}
+
+.modalHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+
+.close{
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:11px;
+  background:#17293c;
+  color:white;
+  font-size:22px;
+}
+
+.modalRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:13px 0;
+  border-bottom:1px solid #1c2d40;
+}
+
+.modalRow span{
+  color:var(--muted);
+}
+
+.action{
+  width:100%;
+  border:0;
+  border-radius:12px;
+  padding:12px;
+  margin-top:12px;
+  background:linear-gradient(90deg,#ff9500,#ffc21a);
+  color:#111;
+  font-weight:900;
+}
+
+.note{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+
+@media(max-width:430px){
+  .balance{font-size:41px}
+  .mineButton{
+    width:135px;
+    height:135px;
+  }
+  .features{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
 </style>
 </head>
+
 <body>
+
 <div class="app">
+
+  <!-- HEADER -->
   <div class="top">
-    <div class="brand"><div class="logo">⛏️</div><div><h1>MINE RUSH</h1><div class="welcome">Welcome, <b id="username">Gamer</b> 👋</div></div></div>
+    <div class="brand">
+      <div class="logo">⛏️</div>
+      <div>
+        <h1>MINE RUSH</h1>
+        <div class="welcome">
+          Welcome, <b id="username">Gamer</b> 👋
+        </div>
+      </div>
+    </div>
+
     <div class="online">● ONLINE</div>
   </div>
 
+
+  <!-- BALANCE -->
   <div class="card">
-    <div class="head"><span>MINE BALANCE</span><span class="boost">+<span id="boost">0</span>% BOOST</span></div>
-    <div class="balance" id="note">0</div><div class="rupee">≈ ₹<span id="rupee">0.00</span></div>
-    <div class="stats">
-      <div class="stat">🪙<small>NOTE</small><b id="note2">0</b></div>
-      <div class="stat">🪙<small>SIKKA</small><b id="sikka">0</b></div>
-      <div class="stat">⭐<small>LEVEL</small><b id="level">1</b></div>
-      <div class="stat">⚡<small>XP</small><b id="xp">0</b></div>
+
+    <div class="label">TOTAL NOTE</div>
+
+    <div class="balance" id="note">
+      0
     </div>
-  </div>
 
-  <div class="card">
-    <div class="title"><span>⛏️ MINING</span><span class="energy">⚡ <span id="energy">100</span>/100</span></div>
-    <div class="minebox"><div class="pick">⛏️</div><button class="minebtn" id="mineBtn" onclick="startMining()">START</button></div>
-    <div class="timer" id="timer">READY</div><div class="sub" id="sub">4-hour mining session</div>
-    <div class="progress"><div class="bar" id="bar"></div></div>
-    <div class="meta"><span>+100 NOTE</span><span>4 HOURS</span></div>
-  </div>
-
-  <div class="grid3">
-    <div class="tile" onclick="openBonus()"><div class="ico">🎁</div><b>BONUS</b></div>
-    <div class="tile" onclick="openReferral()"><div class="ico">👥</div><b>REFERRAL</b></div>
-    <div class="tile" onclick="openRank()"><div class="ico">🏆</div><b>RANK</b></div>
-    <div class="tile" onclick="openWallet()"><div class="ico">💰</div><b>WALLET</b></div>
-    <div class="tile" onclick="openMarket()"><div class="ico">🛒</div><b>MARKET</b></div>
-    <div class="tile" onclick="openProfile()"><div class="ico">👤</div><b>PROFILE</b></div>
-  </div>
-
-  <div class="card">
-    <div class="title">MORE FEATURES</div>
-    <div class="feature" style="margin-top:11px">
-      <div class="tile"><div class="ico">👷</div><b>MINER</b><div class="desc">Hire miners</div><button class="action secondary" onclick="openSimple('MINER','Hire extra miners to increase your mining rate.')">OPEN</button></div>
-      <div class="tile"><div class="ico">📺</div><b>ADS</b><div class="desc">Watch & earn</div><button class="action secondary" onclick="openSimple('ADS','Ad rewards will be enabled from the backend after the ad provider is connected.')">OPEN</button></div>
-      <div class="tile"><div class="ico">👛</div><b>DEPOSIT</b><div class="desc">Add funds</div><button class="action secondary" onclick="openDeposit()">OPEN</button></div>
-      <div class="tile"><div class="ico">🏦</div><b>WITHDRAW</b><div class="desc">Cash out</div><button class="action secondary" onclick="openWithdraw()">OPEN</button></div>
-      <div class="tile"><div class="ico">🎮</div><b>GAME</b><div class="desc">Play & earn</div><button class="action secondary" onclick="openSimple('GAME','Games can be connected here later. No fake rewards are issued by the frontend.')">OPEN</button></div>
-      <div class="tile"><div class="ico">🎒</div><b>INVENTORY</b><div class="desc">Your items</div><button class="action secondary" onclick="openSimple('INVENTORY','Your purchased miners, boosts and items will appear here.')">OPEN</button></div>
-      <div class="tile"><div class="ico">📈</div><b>UPGRADES</b><div class="desc">Mining power</div><button class="action secondary" onclick="openSimple('UPGRADES','Upgrade mining power using SIKKA when the backend shop is enabled.')">OPEN</button></div>
-      <div class="tile"><div class="ico">📋</div><b>TASKS</b><div class="desc">Earn more</div><button class="action secondary" onclick="openSimple('TASKS','Tasks will be loaded from the backend.')">OPEN</button></div>
-      <div class="tile"><div class="ico">🏅</div><b>ACHIEVEMENTS</b><div class="desc">Milestones</div><button class="action secondary" onclick="openSimple('ACHIEVEMENTS','Mining milestones and rewards will appear here.')">OPEN</button></div>
-      <div class="tile"><div class="ico">🎁</div><b>LUCKY BOX</b><div class="desc">Random reward</div><button class="action secondary" onclick="openSimple('LUCKY BOX','Lucky boxes will use a server-side reward system.')">OPEN</button></div>
-      <div class="tile"><div class="ico">🎧</div><b>SUPPORT</b><div class="desc">Get help</div><button class="action secondary" onclick="openSimple('SUPPORT','Contact the MINE RUSH support account from your Telegram bot.')">OPEN</button></div>
+    <div class="rupee">
+      ≈ ₹<span id="rupee">0.00</span>
     </div>
+
+    <div class="balanceStats">
+
+      <div class="stat">
+        🪙
+        <small>SIKKA</small>
+        <b id="sikka">0</b>
+      </div>
+
+      <div class="stat">
+        ⭐
+        <small>LEVEL</small>
+        <b id="level">1</b>
+      </div>
+
+      <div class="stat">
+        ⚡
+        <small>XP</small>
+        <b id="xp">0</b>
+      </div>
+
+    </div>
+
   </div>
+
+
+  <!-- MINING -->
+  <div class="card">
+
+    <div class="sectionTitle">
+      <span>⛏️ MINING</span>
+      <span class="energy">
+        ⚡ <span id="energy">100</span>/100
+      </span>
+    </div>
+
+    <div class="mineArea">
+
+      <div class="pick">⛏️</div>
+
+      <button
+        class="mineButton"
+        id="mineButton"
+        onclick="startMining()">
+        START
+      </button>
+
+    </div>
+
+    <div class="timer" id="timer">
+      READY
+    </div>
+
+    <div class="miningInfo" id="miningInfo">
+      Select a miner to start earning
+    </div>
+
+    <div class="progress">
+      <div
+        class="progressBar"
+        id="progressBar">
+      </div>
+    </div>
+
+    <div class="mineMeta">
+      <span id="mineReward">+0 NOTE</span>
+      <span id="mineDuration">--</span>
+    </div>
+
+  </div>
+
+
+  <!-- MINERS -->
+  <div class="card">
+
+    <div class="titleRow">
+      <h2>👷 MINERS</h2>
+      <span class="view">MY MINERS</span>
+    </div>
+
+    <div id="minerList"></div>
+
+  </div>
+
+
+  <!-- FEATURES -->
+  <div class="card">
+
+    <div class="titleRow">
+      <h2>MORE</h2>
+    </div>
+
+    <div class="features">
+
+      <div class="feature" onclick="wallet()">
+        <div class="featureIcon">💰</div>
+        <b>WALLET</b>
+      </div>
+
+      <div class="feature" onclick="market()">
+        <div class="featureIcon">🛒</div>
+        <b>MARKET</b>
+      </div>
+
+      <div class="feature" onclick="bonus()">
+        <div class="featureIcon">🎁</div>
+        <b>BONUS</b>
+      </div>
+
+      <div class="feature" onclick="referral()">
+        <div class="featureIcon">👥</div>
+        <b>REFERRAL</b>
+      </div>
+
+      <div class="feature" onclick="leaderboard()">
+        <div class="featureIcon">🏆</div>
+        <b>RANK</b>
+      </div>
+
+      <div class="feature" onclick="profile()">
+        <div class="featureIcon">👤</div>
+        <b>PROFILE</b>
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
 
+
+<!-- NAVIGATION -->
 <div class="nav">
-  <button class="on" onclick="scrollTo({top:0,behavior:'smooth'})"><i>🏠</i>HOME</button>
-  <button onclick="document.querySelectorAll('.card')[1].scrollIntoView({behavior:'smooth'})"><i>⛏️</i>MINING</button>
-  <button onclick="openWallet()"><i>💰</i>WALLET</button>
-  <button onclick="openMarket()"><i>🛒</i>MARKET</button>
-  <button onclick="openProfile()"><i>👤</i>PROFILE</button>
+
+  <button class="active">
+    <i>🏠</i>
+    HOME
+  </button>
+
+  <button onclick="scrollToMining()">
+    <i>⛏️</i>
+    MINING
+  </button>
+
+  <button onclick="wallet()">
+    <i>💰</i>
+    WALLET
+  </button>
+
+  <button onclick="market()">
+    <i>🛒</i>
+    MARKET
+  </button>
+
+  <button onclick="profile()">
+    <i>👤</i>
+    PROFILE
+  </button>
+
 </div>
 
-<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
-  <div class="sheet"><div class="sheethead"><span id="mtitle"></span><button class="close" onclick="closeModal()">×</button></div><div id="mbody"></div></div>
+
+<!-- MODAL -->
+<div
+  class="modal"
+  id="modal"
+  onclick="if(event.target===this)closeModal()">
+
+  <div class="sheet">
+
+    <div class="modalHead">
+      <span id="modalTitle"></span>
+
+      <button
+        class="close"
+        onclick="closeModal()">
+        ×
+      </button>
+    </div>
+
+    <div id="modalBody"></div>
+
+  </div>
+
 </div>
+
 
 <script>
-const tg=window.Telegram?.WebApp;
-if(tg){tg.ready();tg.expand();tg.setHeaderColor('#060c14');tg.setBackgroundColor('#060c14')}
-const API='/api';
-let state={note:0,sikka:0,xp:0,level:1,energy:100,boost:0,mining_active:false,mining_end:null,bonus_available:true,bonus_next:null,username:'Gamer'};
-let busy=false;
 
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-async function api(path,options={}){const initData=tg?.initData||'';options.headers={...(options.headers||{}),'Content-Type':'application/json','X-Telegram-Init-Data':initData};const r=await fetch(API+path,options);const text=await r.text();let d;try{d=JSON.parse(text)}catch(e){throw new Error('Server returned non-JSON response')};if(!r.ok||d.ok===false)throw new Error(d.error||'Request failed');return d}
-async function load(){try{const d=await api('/me');state={...state,...d.user};$('username').textContent=d.user.username||'Gamer';render()}catch(e){console.error(e);$('sub').textContent='Connection error: '+e.message}}
-function render(){
-$('note').textContent=Number(state.note||0).toLocaleString();$('note2').textContent=Number(state.note||0).toLocaleString();$('sikka').textContent=Number(state.sikka||0).toLocaleString();$('xp').textContent=Number(state.xp||0).toLocaleString();$('level').textContent=state.level||1;$('energy').textContent=state.energy??100;$('boost').textContent=state.boost||0;$('rupee').textContent=(Number(state.note||0)/10000).toFixed(2);
-const left=state.mining_end?Math.max(0,new Date(state.mining_end).getTime()-Date.now()):0;
-if(state.mining_active&&left>0){const s=Math.floor(left/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),z=s%60;$('timer').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(z).padStart(2,'0')}`;$('sub').textContent='Mining in progress...';$('mineBtn').textContent='RUNNING';$('mineBtn').disabled=true;$('bar').style.width=(100-left/144000).toFixed(2)+'%'}else{$('timer').textContent='READY';$('sub').textContent='4-hour mining session';$('mineBtn').textContent='START';$('mineBtn').disabled=false;$('bar').style.width='0%'}
+/* =====================================================
+   MINE RUSH NEW ECONOMY
+   1000 NOTE = ₹1
+===================================================== */
+
+const NOTE_PER_RUPEE = 1000;
+
+
+/* PLAYER */
+
+let player = {
+  username:"Gamer",
+  note:0,
+  sikka:0,
+  xp:0,
+  level:1,
+  energy:100,
+
+  mining:false,
+  miningEnd:null,
+  miningReward:0,
+  miningDuration:0,
+
+  miners:[]
+};
+
+
+/* =====================================================
+   MINERS
+
+   Prices are INR.
+   Earnings are NOTE.
+
+   Example:
+   ₹10 miner = 10,000 NOTE price
+===================================================== */
+
+const MINERS = [
+
+  {
+    id:"stone",
+    name:"Stone Miner",
+    icon:"⛏️",
+    price:10,
+    reward:1000,
+    duration:3600
+  },
+
+  {
+    id:"iron",
+    name:"Iron Miner",
+    icon:"👷",
+    price:50,
+    reward:6000,
+    duration:3600
+  },
+
+  {
+    id:"gold",
+    name:"Gold Miner",
+    icon:"🥇",
+    price:250,
+    reward:35000,
+    duration:3600
+  },
+
+  {
+    id:"diamond",
+    name:"Diamond Miner",
+    icon:"💎",
+    price:1000,
+    reward:160000,
+    duration:3600
+  }
+
+];
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function $(id){
+  return document.getElementById(id);
 }
-async function startMining(){if(busy)return;busy=true;try{const d=await api('/mine/start',{method:'POST'});state={...state,...d.user};render();openSimple('MINING STARTED','Your 4-hour mining session has started. The +100 NOTE reward will be credited by the server when the timer completes.')}catch(e){alert(e.message)}finally{busy=false}}
-function openModal(t,b){$('mtitle').textContent=t;$('mbody').innerHTML=b;$('modal').classList.add('show')}
-function closeModal(){$('modal').classList.remove('show')}
-function openSimple(t,b){openModal(t,`<p class="note">${esc(b)}</p>`)}
-async function openBonus(){try{const d=await api('/bonus/status');openModal('🎁 DAILY BONUS',`<div class="row"><span>Reward</span><b>+100 SIKKA</b></div><div class="row"><span>Status</span><b>${d.available?'AVAILABLE':'CLAIMED'}</b></div>${d.available?'<button class="action" onclick="claimBonus()">CLAIM +100 SIKKA</button>':`<p class="note">Next bonus: ${new Date(d.next_claim_at).toLocaleString()}</p>`}`)}catch(e){alert(e.message)}}
-async function claimBonus(){try{const d=await api('/bonus/claim',{method:'POST'});state={...state,...d.user};closeModal();render();alert('🎁 +100 SIKKA added')}catch(e){alert(e.message)}}
-async function openReferral(){try{const d=await api('/referral');openModal('👥 REFERRAL',`<div class="row"><span>Your code</span><b>${esc(d.code)}</b></div><div class="row"><span>Referrals</span><b>${d.count}</b></div><input class="input" id="refLink" value="${esc(d.link)}" readonly><button class="action" onclick="navigator.clipboard.writeText(document.getElementById('refLink').value);alert('Link copied')">COPY LINK</button><p class="note">Earn 50 SIKKA for each successful referral.</p>`)}catch(e){alert(e.message)}}
-async function openRank(){try{const d=await api('/leaderboard');openModal('🏆 LEADERBOARD',d.rows.map((x,i)=>`<div class="row"><b>${i+1}. ${esc(x.username||'Gamer')}</b><span>${Number(x.note_balance||0).toLocaleString()} NOTE · LV ${x.level||1}</span></div>`).join('')||'<p class="note">No players yet.</p>')}catch(e){alert(e.message)}}
-function openWallet(){openModal('💰 WALLET',`<div class="row"><span>NOTE</span><b>${Number(state.note).toLocaleString()}</b></div><div class="row"><span>SIKKA</span><b>${Number(state.sikka).toLocaleString()}</b></div><p class="note">Withdrawals are processed by the backend. Your frontend cannot change the server balance.</p><button class="action" onclick="openWithdraw()">WITHDRAW</button>`)}
-async function openWithdraw(){try{const d=await api('/withdrawals');openModal('🏦 WITHDRAW',`<div class="row"><span>Available NOTE</span><b>${Number(state.note).toLocaleString()}</b></div><p class="note">Minimum withdrawal: 10,000 NOTE.</p><input class="input" id="wAmount" type="number" placeholder="NOTE amount"><input class="input" id="wMethod" placeholder="Payment method (UPI / etc.)"><input class="input" id="wDetails" placeholder="Payment details"><button class="action" onclick="requestWithdraw()">REQUEST WITHDRAWAL</button><div style="margin-top:15px">${d.rows.map(x=>`<div class="row"><span>${Number(x.note_amount).toLocaleString()} NOTE</span><b>${esc(x.status)}</b></div>`).join('')}</div>`)}catch(e){alert(e.message)}}
-async function requestWithdraw(){try{const amount=Number($('wAmount').value);const method=$('wMethod').value.trim();const details=$('wDetails').value.trim();const d=await api('/withdraw',{method:'POST',body:JSON.stringify({note_amount:amount,payment_method:method,payment_details:details})});state={...state,...d.user};closeModal();render();alert('Withdrawal request submitted')}catch(e){alert(e.message)}}
-async function openMarket(){try{const d=await api('/market');openModal('🛒 MARKET',d.items.map(x=>`<div class="row"><div><b>${esc(x.name)}</b><br><span>${esc(x.description)}</span></div><button class="action" style="width:120px" onclick="buy(${x.id})">${x.price} SIKKA</button></div>`).join(''))}catch(e){alert(e.message)}}
-async function buy(id){try{const d=await api('/market/buy',{method:'POST',body:JSON.stringify({item_id:id})});state={...state,...d.user};closeModal();render();alert('Purchase successful')}catch(e){alert(e.message)}}
-function openDeposit(){openModal('👛 DEPOSIT','<p class="note">Deposit/payment gateway is intentionally not faked. Connect your chosen payment provider on the backend before accepting real payments.</p><button class="action" onclick="alert(\'Payment gateway is not connected yet\')">CONTINUE</button>')}
-function openProfile(){openModal('👤 PROFILE',`<div class="row"><span>Username</span><b>${esc(state.username)}</b></div><div class="row"><span>Level</span><b>${state.level}</b></div><div class="row"><span>XP</span><b>${state.xp}</b></div><div class="row"><span>Energy</span><b>${state.energy}/100</b></div>`)}
-load();setInterval(()=>{if(state.mining_active)render()},1000);setInterval(load,15000);
+
+
+function save(){
+
+  localStorage.setItem(
+    "mine_rush_new",
+    JSON.stringify(player)
+  );
+
+}
+
+
+function load(){
+
+  const saved =
+    localStorage.getItem("mine_rush_new");
+
+  if(saved){
+
+    try{
+      player = {
+        ...player,
+        ...JSON.parse(saved)
+      };
+    }catch(e){}
+
+  }
+
+}
+
+
+function format(n){
+
+  return Number(n || 0)
+    .toLocaleString("en-IN");
+
+}
+
+
+function rupees(note){
+
+  return (
+    Number(note || 0) /
+    NOTE_PER_RUPEE
+  ).toFixed(2);
+
+}
+
+
+/* =====================================================
+   RENDER
+===================================================== */
+
+function render(){
+
+  $("username").textContent =
+    player.username || "Gamer";
+
+  $("note").textContent =
+    format(player.note);
+
+  $("rupee").textContent =
+    rupees(player.note);
+
+  $("sikka").textContent =
+    format(player.sikka);
+
+  $("xp").textContent =
+    format(player.xp);
+
+  $("level").textContent =
+    player.level;
+
+  $("energy").textContent =
+    player.energy;
+
+  renderMiners();
+
+  renderMining();
+
+}
+
+
+/* =====================================================
+   MINER LIST
+===================================================== */
+
+function renderMiners(){
+
+  const box =
+    $("minerList");
+
+  box.innerHTML = "";
+
+  MINERS.forEach(miner => {
+
+    const owned =
+      player.miners.includes(miner.id);
+
+    const div =
+      document.createElement("div");
+
+    div.className = "miner";
+
+    div.innerHTML = `
+
+      <div class="minerTop">
+
+        <div class="minerIcon">
+          ${miner.icon}
+        </div>
+
+        <div class="minerInfo">
+
+          <b>${miner.name}</b>
+
+          <small>
+            ₹${miner.price}
+            •
+            ${format(miner.reward)} NOTE / hour
+          </small>
+
+        </div>
+
+      </div>
+
+      <div class="minerBottom">
+
+        <span class="earning">
+          +${format(miner.reward)} NOTE
+        </span>
+
+        ${
+          owned
+
+          ?
+
+          `<button
+             class="buy"
+             onclick="selectMiner('${miner.id}')">
+             SELECT
+           </button>`
+
+          :
+
+          `<button
+             class="buy"
+             onclick="buyMiner('${miner.id}')">
+             BUY ₹${miner.price}
+           </button>`
+        }
+
+      </div>
+    `;
+
+    box.appendChild(div);
+
+  });
+
+}
+
+
+/* =====================================================
+   BUY MINER
+===================================================== */
+
+function buyMiner(id){
+
+  const miner =
+    MINERS.find(x => x.id === id);
+
+  if(!miner) return;
+
+
+  const priceNote =
+    miner.price * NOTE_PER_RUPEE;
+
+
+  if(player.note < priceNote){
+
+    alert(
+      `Need ${format(priceNote)} NOTE (₹${miner.price})`
+    );
+
+    return;
+
+  }
+
+
+  player.note -= priceNote;
+
+  player.miners.push(id);
+
+  save();
+  render();
+
+  alert(
+    `${miner.name} purchased successfully!`
+  );
+
+}
+
+
+/* =====================================================
+   SELECT MINER
+===================================================== */
+
+function selectMiner(id){
+
+  const miner =
+    MINERS.find(x => x.id === id);
+
+  if(!miner) return;
+
+  startMining(miner);
+
+}
+
+
+/* =====================================================
+   START MINING
+===================================================== */
+
+function startMining(miner){
+
+  if(!miner){
+
+    if(player.miners.length === 0){
+
+      alert(
+        "First buy a miner."
+      );
+
+      return;
+    }
+
+    miner =
+      MINERS.find(
+        x => x.id === player.miners[0]
+      );
+
+  }
+
+
+  if(player.mining){
+
+    alert(
+      "Mining is already running."
+    );
+
+    return;
+
+  }
+
+
+  player.mining = true;
+
+  player.miningDuration =
+    miner.duration * 1000;
+
+  player.miningEnd =
+    Date.now() +
+    player.miningDuration;
+
+  player.miningReward =
+    miner.reward;
+
+  save();
+
+  render();
+
+}
+
+
+/* =====================================================
+   MINING TIMER
+===================================================== */
+
+function renderMining(){
+
+  if(!player.mining){
+
+    $("timer").textContent =
+      "READY";
+
+    $("miningInfo").textContent =
+      player.miners.length
+      ? "Select your miner to start earning"
+      : "Buy a miner to start earning";
+
+    $("mineButton").textContent =
+      "START";
+
+    $("mineButton").disabled =
+      player.miners.length === 0;
+
+    $("progressBar").style.width =
+      "0%";
+
+    $("mineReward").textContent =
+      "+0 NOTE";
+
+    $("mineDuration").textContent =
+      "--";
+
+    return;
+
+  }
+
+
+  const remaining =
+    Math.max(
+      0,
+      player.miningEnd -
+      Date.now()
+    );
+
+
+  if(remaining <= 0){
+
+    finishMining();
+
+    return;
+
+  }
+
+
+  const seconds =
+    Math.floor(
+      remaining / 1000
+    );
+
+
+  const h =
+    Math.floor(seconds / 3600);
+
+  const m =
+    Math.floor(
+      (seconds % 3600) / 60
+    );
+
+  const s =
+    seconds % 60;
+
+
+  $("timer").textContent =
+    `${String(h).padStart(2,"0")}:` +
+    `${String(m).padStart(2,"0")}:` +
+    `${String(s).padStart(2,"0")}`;
+
+
+  $("miningInfo").textContent =
+    "Mining in progress...";
+
+
+  $("mineButton").textContent =
+    "RUNNING";
+
+  $("mineButton").disabled =
+    true;
+
+
+  const total =
+    player.miningDuration;
+
+  const progress =
+    100 -
+    (remaining / total * 100);
+
+
+  $("progressBar").style.width =
+    Math.min(
+      100,
+      Math.max(0,progress)
+    ) + "%";
+
+
+  $("mineReward").textContent =
+    "+" +
+    format(player.miningReward) +
+    " NOTE";
+
+
+  $("mineDuration").textContent =
+    "1 HOUR";
+
+}
+
+
+/* =====================================================
+   FINISH MINING
+===================================================== */
+
+function finishMining(){
+
+  player.note +=
+    Number(player.miningReward);
+
+  player.xp +=
+    10;
+
+  checkLevel();
+
+
+  player.mining =
+    false;
+
+  player.miningEnd =
+    null;
+
+  player.miningReward =
+    0;
+
+  player.miningDuration =
+    0;
+
+
+  save();
+  render();
+
+  alert(
+    "⛏️ Mining complete! Reward added."
+  );
+
+}
+
+
+/* =====================================================
+   LEVEL
+===================================================== */
+
+function checkLevel(){
+
+  const newLevel =
+    Math.floor(
+      player.xp / 100
+    ) + 1;
+
+  if(newLevel > player.level){
+
+    player.level =
+      newLevel;
+
+    alert(
+      `🎉 Level ${player.level} reached!`
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+function openModal(title,body){
+
+  $("modalTitle").textContent =
+    title;
+
+  $("modalBody").innerHTML =
+    body;
+
+  $("modal").classList.add("show");
+
+}
+
+
+function closeModal(){
+
+  $("modal")
+    .classList
+    .remove("show");
+
+}
+
+
+/* =====================================================
+   WALLET
+===================================================== */
+
+function wallet(){
+
+  openModal(
+    "💰 WALLET",
+
+    `
+      <div class="modalRow">
+        <span>NOTE</span>
+        <b>${format(player.note)}</b>
+      </div>
+
+      <div class="modalRow">
+        <span>Value</span>
+        <b>₹${rupees(player.note)}</b>
+      </div>
+
+      <div class="modalRow">
+        <span>SIKKA</span>
+        <b>${format(player.sikka)}</b>
+      </div>
+
+      <p class="note">
+        Conversion rate:
+        1,000 NOTE = ₹1
+      </p>
+
+      <button
+        class="action"
+        onclick="withdraw()">
+        WITHDRAW
+      </button>
+    `
+  );
+
+}
+
+
+/* =====================================================
+   WITHDRAW
+===================================================== */
+
+function withdraw(){
+
+  if(player.note < 10000){
+
+    alert(
+      "Minimum withdrawal is 10,000 NOTE (₹10)."
+    );
+
+    return;
+
+  }
+
+  alert(
+    "Withdrawal backend will be connected next."
+  );
+
+}
+
+
+/* =====================================================
+   MARKET
+===================================================== */
+
+function market(){
+
+  openModal(
+
+    "🛒 MARKET",
+
+    `
+      <div class="modalRow">
+        <span>100 SIKKA</span>
+        <b>1,000 NOTE</b>
+      </div>
+
+      <div class="modalRow">
+        <span>Mining Boost</span>
+        <b>500 SIKKA</b>
+      </div>
+
+      <div class="modalRow">
+        <span>Energy Pack</span>
+        <b>250 SIKKA</b>
+      </div>
+
+      <p class="note">
+        Market items will be connected
+        to the server economy.
+      </p>
+    `
+
+  );
+
+}
+
+
+/* =====================================================
+   BONUS
+===================================================== */
+
+function bonus(){
+
+  openModal(
+
+    "🎁 DAILY BONUS",
+
+    `
+      <div class="modalRow">
+        <span>Daily Reward</span>
+        <b>100 SIKKA</b>
+      </div>
+
+      <button
+        class="action"
+        onclick="claimBonus()">
+        CLAIM BONUS
+      </button>
+    `
+
+  );
+
+}
+
+
+function claimBonus(){
+
+  player.sikka += 100;
+
+  save();
+  render();
+  closeModal();
+
+  alert(
+    "🎁 +100 SIKKA"
+  );
+
+}
+
+
+/* =====================================================
+   REFERRAL
+===================================================== */
+
+function referral(){
+
+  openModal(
+
+    "👥 REFERRAL",
+
+    `
+      <div class="modalRow">
+        <span>Referral Reward</span>
+        <b>500 SIKKA</b>
+      </div>
+
+      <p class="note">
+        Invite players and earn SIKKA
+        when they complete the required
+        referral conditions.
+      </p>
+
+      <button
+        class="action"
+        onclick="copyReferral()">
+        COPY REFERRAL LINK
+      </button>
+    `
+
+  );
+
+}
+
+
+function copyReferral(){
+
+  navigator.clipboard?.writeText(
+    "https://t.me/MINE_RUSH_BOT?start=ref"
+  );
+
+  alert(
+    "Referral link copied."
+  );
+
+}
+
+
+/* =====================================================
+   LEADERBOARD
+===================================================== */
+
+function leaderboard(){
+
+  openModal(
+
+    "🏆 LEADERBOARD",
+
+    `
+      <div class="modalRow">
+        <b>1. CryptoMiner</b>
+        <span>2,450,000 NOTE</span>
+      </div>
+
+      <div class="modalRow">
+        <b>2. GoldRush</b>
+        <span>1,850,000 NOTE</span>
+      </div>
+
+      <div class="modalRow">
+        <b>3. DiamondKing</b>
+        <span>1,200,000 NOTE</span>
+      </div>
+
+      <div class="modalRow">
+        <b>YOU</b>
+        <span>${format(player.note)} NOTE</span>
+      </div>
+    `
+
+  );
+
+}
+
+
+/* =====================================================
+   PROFILE
+===================================================== */
+
+function profile(){
+
+  openModal(
+
+    "👤 PROFILE",
+
+    `
+      <div class="modalRow">
+        <span>Username</span>
+        <b>${player.username}</b>
+      </div>
+
+      <div class="modalRow">
+        <span>Level</span>
+        <b>${player.level}</b>
+      </div>
+
+      <div class="modalRow">
+        <span>XP</span>
+        <b>${format(player.xp)}</b>
+      </div>
+
+      <div class="modalRow">
+        <span>Miners</span>
+        <b>${player.miners.length}</b>
+      </div>
+    `
+
+  );
+
+}
+
+
+/* =====================================================
+   SCROLL
+===================================================== */
+
+function scrollToMining(){
+
+  document
+    .querySelector(".mineArea")
+    .scrollIntoView({
+      behavior:"smooth"
+    });
+
+}
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+load();
+render();
+
+
+/* TIMER */
+
+setInterval(
+  renderMining,
+  1000
+);
+
 </script>
+
 </body>
 </html>
