@@ -1,1152 +1,1686 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+name="viewport"
+content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
 >
+
 <title>MINE RUSH</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+
 *{
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
+box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;
 }
 
 html,body{
-    margin:0;
-    padding:0;
-    width:100%;
-    min-height:100%;
-    background:#080d15;
-    color:#fff;
-    font-family:Arial,Helvetica,sans-serif;
+margin:0;
+padding:0;
+background:#070b12;
+color:#fff;
+font-family:Arial,sans-serif;
 }
 
 body{
-    overflow-x:hidden;
+min-height:100vh;
+overflow-x:hidden;
 }
 
-button{
-    font-family:inherit;
-    border:0;
-    outline:0;
+body:before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+background:
+radial-gradient(circle at 15% 10%,rgba(255,170,0,.13),transparent 28%),
+radial-gradient(circle at 90% 20%,rgba(0,170,255,.10),transparent 30%),
+radial-gradient(circle at 50% 100%,rgba(120,0,255,.10),transparent 35%);
 }
 
 .app{
-    width:100%;
-    max-width:520px;
-    min-height:100vh;
-    margin:auto;
-    padding:14px 14px 82px;
+position:relative;
+max-width:520px;
+margin:auto;
+padding:14px 13px 95px;
 }
 
-/* HEADER */
-
-.header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:12px;
+.top{
+display:flex;
+align-items:center;
+justify-content:space-between;
+margin-bottom:12px;
 }
 
 .brand{
-    display:flex;
-    align-items:center;
-    gap:9px;
+display:flex;
+align-items:center;
+gap:10px;
 }
 
-.brand-icon{
-    width:42px;
-    height:42px;
-    border-radius:13px;
-    background:#ff9f00;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:23px;
+.logo{
+width:45px;
+height:45px;
+border-radius:14px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:25px;
+background:linear-gradient(145deg,#ffb300,#ff7900);
+box-shadow:0 8px 25px #ff9d0030;
 }
 
-.brand-title{
-    font-size:22px;
-    font-weight:800;
-    letter-spacing:.4px;
+.title{
+font-size:23px;
+font-weight:800;
+letter-spacing:.5px;
 }
 
-.profile-btn{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:#121b28;
-    color:#fff;
-    font-size:21px;
+.online{
+font-size:11px;
+color:#00e08a;
+background:#06271b;
+border:1px solid #0a754d;
+padding:6px 9px;
+border-radius:20px;
 }
-
-/* WELCOME */
 
 .welcome{
-    color:#8d9aab;
-    font-size:13px;
-    margin:0 2px 10px;
+color:#9aa7b7;
+font-size:14px;
+margin:3px 0 13px 3px;
 }
 
-/* BALANCE */
-
-.balance-card{
-    background:linear-gradient(
-        145deg,
-        #151f2d,
-        #0e1622
-    );
-    border:1px solid #243246;
-    border-radius:20px;
-    padding:15px;
-    box-shadow:0 10px 30px rgba(0,0,0,.18);
+.card{
+background:linear-gradient(
+145deg,
+#111b28,
+#0b121d
+);
+border:1px solid #243448;
+border-radius:22px;
+padding:15px;
+margin-bottom:11px;
+box-shadow:0 12px 35px #00000035;
 }
 
-.balance-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.balance-head{
+display:flex;
+justify-content:space-between;
+color:#8c9bad;
+font-size:12px;
+text-transform:uppercase;
 }
 
-.balance-label{
-    color:#8996a8;
-    font-size:11px;
-    letter-spacing:1px;
-    font-weight:700;
+.balance{
+font-size:43px;
+font-weight:800;
+margin:2px 0;
 }
 
-.balance-value{
-    font-size:34px;
-    line-height:1;
-    font-weight:800;
-    margin-top:6px;
+.rupee{
+color:#8e9aab;
+font-size:13px;
 }
-
-.balance-rupee{
-    color:#8d9aaa;
-    font-size:12px;
-    margin-top:5px;
-}
-
-.status{
-    background:#10261b;
-    color:#54d98a;
-    border:1px solid #1b5034;
-    padding:6px 9px;
-    border-radius:20px;
-    font-size:10px;
-    font-weight:700;
-}
-
-/* STATS */
 
 .stats{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:7px;
-    margin-top:13px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:7px;
+margin-top:12px;
 }
 
 .stat{
-    background:#0a111c;
-    border:1px solid #1d2a3b;
-    border-radius:13px;
-    padding:9px 5px;
-    text-align:center;
+background:#070e18;
+border:1px solid #1d2b3d;
+border-radius:15px;
+padding:9px 4px;
+text-align:center;
 }
 
 .stat-icon{
-    font-size:14px;
+font-size:18px;
 }
 
 .stat-label{
-    color:#778496;
-    font-size:9px;
-    margin-top:3px;
+font-size:10px;
+color:#8290a2;
+margin-top:2px;
 }
 
 .stat-value{
-    font-size:15px;
-    font-weight:800;
-    margin-top:2px;
+font-size:16px;
+font-weight:700;
+margin-top:2px;
 }
 
-/* MINING */
-
-.mining-card{
-    margin-top:12px;
-    background:#121b27;
-    border:1px solid #253347;
-    border-radius:20px;
-    padding:12px;
-    text-align:center;
+.mine-card{
+padding:13px;
 }
 
-.mining-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:3px;
-}
-
-.mining-title{
-    font-size:17px;
-    font-weight:800;
+.mine-title{
+display:flex;
+align-items:center;
+justify-content:space-between;
+font-size:20px;
+font-weight:700;
 }
 
 .energy{
-    color:#8d9aaa;
-    font-size:10px;
+font-size:11px;
+color:#a9b4c2;
 }
 
 .mine-area{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:18px;
-    min-height:145px;
+display:flex;
+align-items:center;
+justify-content:space-around;
+min-height:145px;
 }
 
-.pickaxe{
-    font-size:56px;
-    filter:drop-shadow(0 8px 10px rgba(255,159,0,.15));
+.pick{
+font-size:70px;
+filter:drop-shadow(0 10px 10px #000);
+transform:rotate(-15deg);
 }
 
 .mine-btn{
-    width:112px;
-    height:112px;
-    border-radius:50%;
-    background:#ff9f00;
-    color:#111;
-    font-size:20px;
-    font-weight:900;
-    box-shadow:
-        0 8px 0 #c97800,
-        0 15px 30px rgba(255,159,0,.2);
-    cursor:pointer;
-    transition:.12s;
+width:135px;
+height:135px;
+border-radius:50%;
+border:0;
+font-size:20px;
+font-weight:800;
+background:linear-gradient(
+145deg,
+#ffb000,
+#ff8500
+);
+box-shadow:
+0 10px 0 #b85800,
+0 20px 35px #ff9d0045;
 }
 
 .mine-btn:active{
-    transform:translateY(6px) scale(.96);
-    box-shadow:
-        0 2px 0 #c97800,
-        0 8px 18px rgba(255,159,0,.15);
+transform:translateY(7px);
+box-shadow:
+0 3px 0 #b85800,
+0 8px 18px #ff9d0040;
 }
 
-.mine-btn.disabled{
-    opacity:.45;
-    box-shadow:none;
+.mine-btn.active{
+background:linear-gradient(
+145deg,
+#ffbf22,
+#ff9200
+);
 }
 
-.energy-bar{
-    width:100%;
-    height:6px;
-    background:#080f18;
-    border-radius:10px;
-    overflow:hidden;
-    margin-top:2px;
+.timer{
+text-align:center;
+font-size:28px;
+font-weight:800;
+letter-spacing:2px;
+margin-top:3px;
 }
 
-.energy-fill{
-    height:100%;
-    width:100%;
-    background:#42d883;
-    border-radius:10px;
-    transition:.2s;
+.timer-label{
+text-align:center;
+font-size:11px;
+color:#8d9aaa;
 }
 
-.mining-info{
-    display:flex;
-    justify-content:space-between;
-    color:#78879a;
-    font-size:9px;
-    margin-top:5px;
+.progress{
+height:7px;
+background:#050a11;
+border-radius:10px;
+overflow:hidden;
+margin-top:11px;
 }
 
-/* FEATURES */
+.progress-bar{
+height:100%;
+width:0%;
+background:linear-gradient(
+90deg,
+#00d98b,
+#00a9ff
+);
+transition:width .4s;
+}
+
+.mine-info{
+display:flex;
+justify-content:space-between;
+font-size:11px;
+color:#8996a7;
+margin-top:6px;
+}
 
 .features{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-    margin-top:12px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
 }
 
 .feature{
-    min-height:67px;
-    background:#111a26;
-    border:1px solid #223044;
-    border-radius:15px;
-    color:#fff;
-    cursor:pointer;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
+background:#111b28;
+border:1px solid #253449;
+border-radius:17px;
+padding:13px 5px;
+color:#fff;
+font-size:11px;
+font-weight:700;
+}
+
+.feature span{
+display:block;
+font-size:22px;
+margin-bottom:5px;
 }
 
 .feature:active{
-    transform:scale(.97);
-    background:#172233;
+transform:scale(.97);
 }
 
-.feature-icon{
-    font-size:22px;
+.bottom{
+position:fixed;
+bottom:0;
+left:50%;
+transform:translateX(-50%);
+width:100%;
+max-width:520px;
+background:#09101aee;
+backdrop-filter:blur(15px);
+border-top:1px solid #203044;
+padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+display:grid;
+grid-template-columns:repeat(4,1fr);
+z-index:50;
 }
 
-.feature-name{
-    font-size:10px;
-    font-weight:700;
-    color:#b5c0cd;
+.nav{
+border:0;
+background:transparent;
+color:#768598;
+font-size:10px;
+padding:5px;
 }
 
-/* BOTTOM NAV */
-
-.bottom-nav{
-    position:fixed;
-    left:50%;
-    bottom:0;
-    transform:translateX(-50%);
-    width:100%;
-    max-width:520px;
-    height:67px;
-    background:rgba(9,15,24,.96);
-    backdrop-filter:blur(15px);
-    border-top:1px solid #202c3c;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    padding:7px 10px 8px;
-    z-index:100;
+.nav span{
+display:block;
+font-size:20px;
+margin-bottom:2px;
 }
 
-.nav-btn{
-    background:transparent;
-    color:#657386;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:3px;
-    border-radius:12px;
-    cursor:pointer;
+.nav.active{
+color:#ffae00;
 }
 
-.nav-btn.active{
-    color:#ffae19;
-    background:#171f2b;
+.modal{
+position:fixed;
+inset:0;
+background:#0009;
+display:none;
+align-items:flex-end;
+z-index:100;
 }
 
-.nav-icon{
-    font-size:19px;
+.modal.show{
+display:flex;
 }
 
-.nav-name{
-    font-size:8px;
-    font-weight:700;
+.sheet{
+width:100%;
+max-width:520px;
+margin:auto;
+background:#101925;
+border:1px solid #293a4e;
+border-radius:25px 25px 0 0;
+padding:18px;
+max-height:80vh;
+overflow:auto;
 }
 
-/* TOAST */
+.sheet h2{
+margin:0 0 15px;
+font-size:20px;
+}
+
+.close{
+float:right;
+border:0;
+background:#202d3d;
+color:#fff;
+border-radius:10px;
+padding:7px 11px;
+}
+
+.row{
+display:flex;
+justify-content:space-between;
+padding:12px 0;
+border-bottom:1px solid #1d2a38;
+font-size:13px;
+}
+
+.primary{
+width:100%;
+border:0;
+border-radius:14px;
+padding:14px;
+font-size:15px;
+font-weight:800;
+background:#ff9d00;
+color:#111;
+margin-top:12px;
+}
+
+.input{
+width:100%;
+padding:13px;
+border-radius:12px;
+border:1px solid #2a3a4d;
+background:#080e16;
+color:#fff;
+margin-top:8px;
+outline:none;
+}
+
+.loading{
+position:fixed;
+inset:0;
+background:#070b12;
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:999;
+font-size:18px;
+}
+
+.hidden{
+display:none!important;
+}
 
 .toast{
-    position:fixed;
-    left:50%;
-    bottom:78px;
-    transform:translateX(-50%) translateY(20px);
-    background:#182332;
-    border:1px solid #2a3a50;
-    color:#fff;
-    padding:11px 16px;
-    border-radius:12px;
-    font-size:12px;
-    opacity:0;
-    pointer-events:none;
-    transition:.25s;
-    z-index:200;
-    white-space:nowrap;
+position:fixed;
+left:50%;
+bottom:85px;
+transform:translateX(-50%);
+background:#172334;
+border:1px solid #30445d;
+padding:11px 16px;
+border-radius:13px;
+font-size:12px;
+z-index:200;
+display:none;
 }
 
-.toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-}
-
-/* SMALL MOBILE */
-
-@media(max-width:360px){
-
-    .app{
-        padding-left:10px;
-        padding-right:10px;
-    }
-
-    .brand-title{
-        font-size:19px;
-    }
-
-    .balance-value{
-        font-size:30px;
-    }
-
-    .mine-area{
-        min-height:132px;
-        gap:8px;
-    }
-
-    .pickaxe{
-        font-size:45px;
-    }
-
-    .mine-btn{
-        width:100px;
-        height:100px;
-        font-size:18px;
-    }
-
-    .feature{
-        min-height:61px;
-    }
-
-    .feature-icon{
-        font-size:20px;
-    }
-}
 </style>
+
 </head>
 
 <body>
 
+<div id="loading" class="loading">
+⛏️ Loading MINE RUSH...
+</div>
+
+
 <div class="app">
 
-    <!-- HEADER -->
-    <header class="header">
+<div class="top">
 
-        <div class="brand">
+<div class="brand">
 
-            <div class="brand-icon">⛏️</div>
+<div class="logo">⛏️</div>
 
-            <div class="brand-title">
-                MINE RUSH
-            </div>
+<div class="title">
+MINE RUSH
+</div>
 
-        </div>
+</div>
 
-        <button
-            class="profile-btn"
-            onclick="showToast('👤 Profile coming soon')"
-        >
-            👤
-        </button>
-
-    </header>
-
-
-    <!-- WELCOME -->
-    <div class="welcome">
-        Welcome, <span id="username">Gamer</span> 👋
-    </div>
-
-
-    <!-- BALANCE -->
-    <section class="balance-card">
-
-        <div class="balance-top">
-
-            <div>
-
-                <div class="balance-label">
-                    MINE BALANCE
-                </div>
-
-                <div
-                    class="balance-value"
-                    id="totalBalance"
-                >
-                    0
-                </div>
-
-                <div class="balance-rupee">
-                    ≈ ₹<span id="rupees">0.00</span>
-                </div>
-
-            </div>
-
-            <div class="status">
-                ● ONLINE
-            </div>
-
-        </div>
-
-
-        <div class="stats">
-
-            <div class="stat">
-
-                <div class="stat-icon">
-                    🪙
-                </div>
-
-                <div class="stat-label">
-                    NOTE
-                </div>
-
-                <div
-                    class="stat-value"
-                    id="note"
-                >
-                    0
-                </div>
-
-            </div>
-
-
-            <div class="stat">
-
-                <div class="stat-icon">
-                    🪙
-                </div>
-
-                <div class="stat-label">
-                    SIKKA
-                </div>
-
-                <div
-                    class="stat-value"
-                    id="sikka"
-                >
-                    0
-                </div>
-
-            </div>
-
-
-            <div class="stat">
-
-                <div class="stat-icon">
-                    ⭐
-                </div>
-
-                <div class="stat-label">
-                    LEVEL
-                </div>
-
-                <div
-                    class="stat-value"
-                    id="level"
-                >
-                    1
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- MINING -->
-    <section class="mining-card">
-
-        <div class="mining-header">
-
-            <div class="mining-title">
-                ⛏️ MINING
-            </div>
-
-            <div class="energy">
-                ⚡ <span id="energyText">100</span>/100
-            </div>
-
-        </div>
-
-
-        <div class="mine-area">
-
-            <div class="pickaxe">
-                ⛏️
-            </div>
-
-            <button
-                id="mineButton"
-                class="mine-btn"
-                onclick="mine()"
-            >
-                MINE
-            </button>
-
-        </div>
-
-
-        <div class="energy-bar">
-
-            <div
-                id="energyFill"
-                class="energy-fill"
-            ></div>
-
-        </div>
-
-
-        <div class="mining-info">
-
-            <span>
-                +1 MINE / CLICK
-            </span>
-
-            <span>
-                ⚡ 1 ENERGY
-            </span>
-
-        </div>
-
-    </section>
-
-
-    <!-- FEATURES -->
-    <section class="features">
-
-        <button
-            class="feature"
-            onclick="showToast('👥 Referral system coming soon')"
-        >
-            <span class="feature-icon">👥</span>
-            <span class="feature-name">REFER</span>
-        </button>
-
-
-        <button
-            class="feature"
-            onclick="showToast('🎁 Daily Bonus coming soon')"
-        >
-            <span class="feature-icon">🎁</span>
-            <span class="feature-name">BONUS</span>
-        </button>
-
-
-        <button
-            class="feature"
-            onclick="showToast('🏪 Market coming soon')"
-        >
-            <span class="feature-icon">🏪</span>
-            <span class="feature-name">MARKET</span>
-        </button>
-
-
-        <button
-            class="feature"
-            onclick="showToast('💰 Wallet coming soon')"
-        >
-            <span class="feature-icon">💰</span>
-            <span class="feature-name">WALLET</span>
-        </button>
-
-
-        <button
-            class="feature"
-            onclick="showToast('🏆 Leaderboard coming soon')"
-        >
-            <span class="feature-icon">🏆</span>
-            <span class="feature-name">RANK</span>
-        </button>
-
-
-        <button
-            class="feature"
-            onclick="showToast('👤 Profile coming soon')"
-        >
-            <span class="feature-icon">👤</span>
-            <span class="feature-name">PROFILE</span>
-        </button>
-
-    </section>
+<div class="online">
+● ONLINE
+</div>
 
 </div>
 
 
-<!-- BOTTOM NAV -->
-
-<nav class="bottom-nav">
-
-    <button
-        class="nav-btn active"
-        onclick="navClick('HOME')"
-    >
-        <span class="nav-icon">🏠</span>
-        <span class="nav-name">HOME</span>
-    </button>
+<div class="welcome">
+Welcome, <b id="username">Gamer</b> 👋
+</div>
 
 
-    <button
-        class="nav-btn"
-        onclick="navClick('MINING')"
-    >
-        <span class="nav-icon">⛏️</span>
-        <span class="nav-name">MINING</span>
-    </button>
+<!-- BALANCE -->
+
+<div class="card">
+
+<div class="balance-head">
+
+<span>MINE BALANCE</span>
+
+<span id="boostText">
++0%
+</span>
+
+</div>
+
+<div class="balance" id="note">
+0
+</div>
+
+<div class="rupee">
+≈ ₹<span id="rupees">0.00</span>
+</div>
 
 
-    <button
-        class="nav-btn"
-        onclick="navClick('MARKET')"
-    >
-        <span class="nav-icon">🏪</span>
-        <span class="nav-name">MARKET</span>
-    </button>
+<div class="stats">
+
+<div class="stat">
+
+<div class="stat-icon">🪙</div>
+
+<div class="stat-label">
+NOTE
+</div>
+
+<div class="stat-value" id="note2">
+0
+</div>
+
+</div>
 
 
-    <button
-        class="nav-btn"
-        onclick="navClick('PROFILE')"
-    >
-        <span class="nav-icon">👤</span>
-        <span class="nav-name">PROFILE</span>
-    </button>
+<div class="stat">
 
-</nav>
+<div class="stat-icon">🪙</div>
+
+<div class="stat-label">
+SIKKA
+</div>
+
+<div class="stat-value" id="sikka">
+0
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="stat-icon">⭐</div>
+
+<div class="stat-label">
+LEVEL
+</div>
+
+<div class="stat-value" id="level">
+1
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- MINING -->
+
+<div class="card mine-card">
+
+<div class="mine-title">
+
+<span>⛏️ MINING</span>
+
+<span class="energy">
+⚡ <span id="energy">100</span>/100
+</span>
+
+</div>
+
+
+<div class="mine-area">
+
+<div class="pick">
+⛏️
+</div>
+
+<button
+id="mineBtn"
+class="mine-btn"
+onclick="miningAction()"
+>
+START
+</button>
+
+</div>
 
 
 <div
-    id="toast"
-    class="toast"
+id="timer"
+class="timer"
+>
+04:00:00
+</div>
+
+<div
+id="timerLabel"
+class="timer-label"
+>
+Start a 4-hour mining session
+</div>
+
+
+<div class="progress">
+
+<div
+id="progress"
+class="progress-bar"
 >
 </div>
+
+</div>
+
+
+<div class="mine-info">
+
+<span>
++<span id="reward">100</span> NOTE
+</span>
+
+<span>
+4 HOURS
+</span>
+
+</div>
+
+</div>
+
+
+<!-- FEATURES -->
+
+<div class="features">
+
+<button
+class="feature"
+onclick="openBonus()"
+>
+<span>🎁</span>
+BONUS
+</button>
+
+
+<button
+class="feature"
+onclick="openReferral()"
+>
+<span>👥</span>
+REFER
+</button>
+
+
+<button
+class="feature"
+onclick="openLeaderboard()"
+>
+<span>🏆</span>
+RANK
+</button>
+
+
+<button
+class="feature"
+onclick="openWallet()"
+>
+<span>💰</span>
+WALLET
+</button>
+
+
+<button
+class="feature"
+onclick="openProfile()"
+>
+<span>👤</span>
+PROFILE
+</button>
+
+
+<button
+class="feature"
+onclick="showSoon()"
+>
+<span>🛒</span>
+MARKET
+</button>
+
+</div>
+
+</div>
+
+
+<!-- BOTTOM -->
+
+<div class="bottom">
+
+<button
+class="nav active"
+onclick="scrollTopPage()"
+>
+<span>🏠</span>
+HOME
+</button>
+
+<button
+class="nav"
+onclick="focusMining()"
+>
+<span>⛏️</span>
+MINING
+</button>
+
+<button
+class="nav"
+onclick="openWallet()"
+>
+<span>💰</span>
+WALLET
+</button>
+
+<button
+class="nav"
+onclick="openProfile()"
+>
+<span>👤</span>
+PROFILE
+</button>
+
+</div>
+
+
+<!-- MODAL -->
+
+<div
+id="modal"
+class="modal"
+onclick="closeOutside(event)"
+>
+
+<div class="sheet">
+
+<button
+class="close"
+onclick="closeModal()"
+>
+✕
+</button>
+
+<div id="modalContent"></div>
+
+</div>
+
+</div>
+
+
+<div id="toast" class="toast"></div>
 
 
 <script>
 
-/* =====================================================
-   TELEGRAM
-===================================================== */
+const tg =
+window.Telegram &&
+window.Telegram.WebApp
+? window.Telegram.WebApp
+: null;
 
-const tg = window.Telegram?.WebApp;
 
 if(tg){
 
-    tg.ready();
+tg.ready();
 
-    tg.expand();
+tg.expand();
 
-    tg.setHeaderColor("#080d15");
-
-    tg.setBackgroundColor("#080d15");
+try{
+tg.setHeaderColor("#070b12");
+tg.setBackgroundColor("#070b12");
+}catch(e){}
 
 }
 
 
-/* =====================================================
-   LOCAL GAME STATE
-===================================================== */
+const API = "";
 
-let mineCoins = 0;
+let user = null;
 
-let energy = 100;
+let timerInterval = null;
 
 
-/* =====================================================
-   USER DATA
-===================================================== */
+function initData(){
 
-async function loadUser(){
+if(tg && tg.initData){
+return tg.initData;
+}
 
-    try{
-
-        if(!tg){
-
-            console.log(
-                "Telegram WebApp not detected"
-            );
-
-            return;
-
-        }
-
-
-        const initData =
-            tg.initData;
-
-
-        if(!initData){
-
-            console.log(
-                "Telegram initData missing"
-            );
-
-            return;
-
-        }
-
-
-        const form =
-            new URLSearchParams();
-
-
-        form.append(
-            "init_data",
-            initData
-        );
-
-
-        const response =
-            await fetch(
-                "/api/me",
-                {
-
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "application/x-www-form-urlencoded"
-                    },
-
-                    body:form.toString()
-
-                }
-            );
-
-
-        const text =
-            await response.text();
-
-
-        console.log(
-            "API RESPONSE:",
-            response.status,
-            text
-        );
-
-
-        let data;
-
-
-        try{
-
-            data =
-                JSON.parse(text);
-
-        }catch(error){
-
-            console.error(
-                "Server returned non-JSON:",
-                text
-            );
-
-            showToast(
-                "⚠️ Server connection problem"
-            );
-
-            return;
-
-        }
-
-
-        if(!data.ok){
-
-            showToast(
-                "⚠️ Unable to load account"
-            );
-
-            return;
-
-        }
-
-
-        const user =
-            data.user || {};
-
-
-        /* USER */
-
-        if(user.first_name){
-
-            document.getElementById(
-                "username"
-            ).innerText =
-                user.first_name;
-
-        }
-
-
-        /* NOTE */
-
-        document.getElementById(
-            "note"
-        ).innerText =
-            Number(
-                user.note || 0
-            ).toLocaleString();
-
-
-        /* SIKKA */
-
-        document.getElementById(
-            "sikka"
-        ).innerText =
-            Number(
-                user.sikka || 0
-            ).toLocaleString();
-
-
-        /* LEVEL */
-
-        document.getElementById(
-            "level"
-        ).innerText =
-            user.level || 1;
-
-
-        /*
-           NOTE is displayed as main MINE balance
-        */
-
-        mineCoins =
-            Number(
-                user.note || 0
-            );
-
-
-        updateScreen();
-
-
-    }catch(error){
-
-        console.error(
-            "LOAD USER ERROR:",
-            error
-        );
-
-        showToast(
-            "⚠️ Connection problem"
-        );
-
-    }
+return "";
 
 }
 
 
-/* =====================================================
-   UPDATE SCREEN
-===================================================== */
+async function api(
+url,
+options={}
+){
 
-function updateScreen(){
+const headers =
+options.headers || {};
 
-    document.getElementById(
-        "totalBalance"
-    ).innerText =
-        mineCoins.toLocaleString();
+headers[
+"X-Telegram-Init-Data"
+] = initData();
 
-
-    document.getElementById(
-        "rupees"
-    ).innerText =
-        (
-            mineCoins / 10000
-        ).toFixed(2);
+headers[
+"Content-Type"
+] = "application/json";
 
 
-    document.getElementById(
-        "energyText"
-    ).innerText =
-        energy;
-
-
-    document.getElementById(
-        "energyFill"
-    ).style.width =
-        energy + "%";
-
-
-    const button =
-        document.getElementById(
-            "mineButton"
-        );
-
-
-    if(energy <= 0){
-
-        button.classList.add(
-            "disabled"
-        );
-
-    }else{
-
-        button.classList.remove(
-            "disabled"
-        );
-
-    }
-
+const response =
+await fetch(
+API + url,
+{
+...options,
+headers
 }
-
-
-/* =====================================================
-   MINE
-===================================================== */
-
-function mine(){
-
-    if(energy <= 0){
-
-        showToast(
-            "⚡ Energy खत्म हो गई"
-        );
-
-        return;
-
-    }
-
-
-    mineCoins += 1;
-
-    energy -= 1;
-
-
-    updateScreen();
-
-
-    showToast(
-        "+1 MINE ⛏️"
-    );
-
-}
-
-
-/* =====================================================
-   ENERGY REGEN
-===================================================== */
-
-setInterval(
-
-    function(){
-
-        if(
-            energy < 100
-        ){
-
-            energy += 1;
-
-            updateScreen();
-
-        }
-
-    },
-
-    30000
-
 );
 
 
-/* =====================================================
-   TOAST
-===================================================== */
-
-let toastTimer;
+const text =
+await response.text();
 
 
-function showToast(message){
+let data;
 
-    const toast =
-        document.getElementById(
-            "toast"
-        );
+try{
 
+data =
+JSON.parse(text);
 
-    toast.innerText =
-        message;
+}catch(e){
 
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        toastTimer
-    );
-
-
-    toastTimer =
-        setTimeout(
-
-            function(){
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            },
-
-            1800
-
-        );
+throw new Error(
+"Server returned invalid response"
+);
 
 }
 
 
-/* =====================================================
-   NAVIGATION
-===================================================== */
+if(!response.ok){
 
-function navClick(name){
-
-    if(name === "HOME"){
-
-        showToast(
-            "🏠 Home"
-        );
-
-        return;
-
-    }
-
-
-    if(name === "MINING"){
-
-        showToast(
-            "⛏️ You are already mining"
-        );
-
-        return;
-
-    }
-
-
-    if(name === "MARKET"){
-
-        showToast(
-            "🏪 Market coming soon"
-        );
-
-        return;
-
-    }
-
-
-    if(name === "PROFILE"){
-
-        showToast(
-            "👤 Profile coming soon"
-        );
-
-        return;
-
-    }
+throw new Error(
+data.error ||
+"Request failed"
+);
 
 }
 
 
-/* =====================================================
-   START
-===================================================== */
+return data;
 
-updateScreen();
+}
 
-loadUser();
+
+function money(n){
+
+return Number(n || 0)
+.toFixed(2);
+
+}
+
+
+function showToast(text){
+
+const el =
+document.getElementById(
+"toast"
+);
+
+el.innerText = text;
+
+el.style.display =
+"block";
+
+
+setTimeout(
+()=>{
+el.style.display="none";
+},
+2500
+);
+
+}
+
+
+function updateUI(){
+
+if(!user) return;
+
+
+document.getElementById(
+"username"
+).innerText =
+user.username || "Gamer";
+
+
+document.getElementById(
+"note"
+).innerText =
+Number(user.note || 0)
+.toLocaleString();
+
+
+document.getElementById(
+"note2"
+).innerText =
+Number(user.note || 0)
+.toLocaleString();
+
+
+document.getElementById(
+"sikka"
+).innerText =
+Number(user.sikka || 0)
+.toLocaleString();
+
+
+document.getElementById(
+"level"
+).innerText =
+user.level || 1;
+
+
+document.getElementById(
+"energy"
+).innerText =
+user.energy ?? 100;
+
+
+document.getElementById(
+"boostText"
+).innerText =
+"+" +
+Number(user.boost || 0)
+.toFixed(0)
++
+"%";
+
+
+document.getElementById(
+"reward"
+).innerText =
+Number(user.mining_rate || 100)
+.toFixed(0);
+
+
+document.getElementById(
+"rupees"
+).innerText =
+money(
+Number(user.note || 0) / 10000
+);
+
+
+updateMiningUI();
+
+}
+
+
+function updateMiningUI(){
+
+if(!user) return;
+
+
+const btn =
+document.getElementById(
+"mineBtn"
+);
+
+const timer =
+document.getElementById(
+"timer"
+);
+
+const label =
+document.getElementById(
+"timerLabel"
+);
+
+const progress =
+document.getElementById(
+"progress"
+);
+
+
+if(timerInterval){
+
+clearInterval(
+timerInterval
+);
+
+timerInterval = null;
+
+}
+
+
+const ends =
+user.mining_ends_at;
+
+
+if(!ends){
+
+btn.innerText =
+"START";
+
+btn.classList.remove(
+"active"
+);
+
+timer.innerText =
+"04:00:00";
+
+label.innerText =
+"Start a 4-hour mining session";
+
+progress.style.width =
+"0%";
+
+return;
+
+}
+
+
+const end =
+new Date(ends)
+.getTime();
+
+
+const start =
+user.mining_started_at
+? new Date(
+user.mining_started_at
+).getTime()
+: end -
+4*60*60*1000;
+
+
+function tick(){
+
+const now =
+Date.now();
+
+
+let remaining =
+Math.max(
+0,
+end-now
+);
+
+
+const total =
+4*60*60*1000;
+
+
+const passed =
+Math.min(
+total,
+Math.max(
+0,
+now-start
+)
+);
+
+
+const percent =
+Math.min(
+100,
+passed/total*100
+);
+
+
+progress.style.width =
+percent + "%";
+
+
+if(remaining <= 0){
+
+timer.innerText =
+"READY";
+
+label.innerText =
+"Mining complete — claim your reward";
+
+btn.innerText =
+"CLAIM";
+
+btn.classList.add(
+"active"
+);
+
+clearInterval(
+timerInterval
+);
+
+return;
+
+}
+
+
+const seconds =
+Math.floor(
+remaining/1000
+);
+
+
+const h =
+Math.floor(
+seconds/3600
+);
+
+const m =
+Math.floor(
+(seconds%3600)/60
+);
+
+const s =
+seconds%60;
+
+
+timer.innerText =
+String(h).padStart(2,"0")
++
+":"
++
+String(m).padStart(2,"0")
++
+":"
++
+String(s).padStart(2,"0");
+
+
+label.innerText =
+"Mining in progress...";
+
+
+btn.innerText =
+"MINE";
+
+btn.classList.add(
+"active"
+);
+
+}
+
+
+tick();
+
+timerInterval =
+setInterval(
+tick,
+1000
+);
+
+}
+
+
+async function miningAction(){
+
+try{
+
+if(
+user &&
+user.mining_ends_at
+){
+
+const end =
+new Date(
+user.mining_ends_at
+).getTime();
+
+
+if(
+Date.now() >= end
+){
+
+const data =
+await api(
+"/api/mining/claim",
+{
+method:"POST"
+}
+);
+
+
+user =
+data.user;
+
+updateUI();
+
+showToast(
+"🎉 +" +
+data.reward +
+" NOTE received!"
+);
+
+return;
+
+}
+
+
+showToast(
+"⛏️ Mining already running"
+);
+
+return;
+
+}
+
+
+const data =
+await api(
+"/api/mining/start",
+{
+method:"POST"
+}
+);
+
+
+user =
+data.user;
+
+updateUI();
+
+showToast(
+"⛏️ 4-hour mining started!"
+);
+
+
+}catch(e){
+
+showToast(
+"⚠️ " + e.message
+);
+
+}
+
+}
+
+
+async function openBonus(){
+
+openModal(
+"<h2>🎁 Daily Bonus</h2>" +
+"<div class='row'>" +
+"<span>Today's reward</span>" +
+"<b>+100 SIKKA</b>" +
+"</div>" +
+"<button class='primary' onclick='claimBonus()'>CLAIM BONUS</button>"
+);
+
+}
+
+
+async function claimBonus(){
+
+try{
+
+const data =
+await api(
+"/api/bonus",
+{
+method:"POST"
+}
+);
+
+
+user =
+data.user;
+
+updateUI();
+
+closeModal();
+
+showToast(
+"🎁 +100 SIKKA!"
+);
+
+
+}catch(e){
+
+showToast(
+"⚠️ " + e.message
+);
+
+}
+
+}
+
+
+async function openReferral(){
+
+openModal(
+"<h2>👥 Referral</h2>" +
+"<p>Invite friends and earn <b>50 SIKKA</b>.</p>" +
+"<div class='row'><span>Loading...</span></div>"
+);
+
+
+try{
+
+const data =
+await api(
+"/api/referral",
+{
+method:"POST"
+}
+);
+
+
+document.getElementById(
+"modalContent"
+).innerHTML =
+
+"<h2>👥 Referral</h2>" +
+
+"<div class='row'>" +
+"<span>Your code</span>" +
+"<b>" +
+data.code +
+"</b>" +
+"</div>" +
+
+"<div class='row'>" +
+"<span>Referrals</span>" +
+"<b>" +
+data.count +
+"</b>" +
+"</div>" +
+
+"<input " +
+"class='input' " +
+"id='refLink' " +
+"value='" +
+data.link +
+"' " +
+"readonly>" +
+
+"<button class='primary' onclick='copyReferral()'>" +
+"📋 COPY LINK" +
+"</button>";
+
+window.referralLink =
+data.link;
+
+
+}catch(e){
+
+showToast(
+"⚠️ " + e.message
+);
+
+}
+
+}
+
+
+async function copyReferral(){
+
+try{
+
+await navigator.clipboard.writeText(
+window.referralLink
+);
+
+showToast(
+"✅ Referral link copied"
+);
+
+}catch(e){
+
+showToast(
+"Copy failed"
+);
+
+}
+
+}
+
+
+async function openLeaderboard(){
+
+openModal(
+"<h2>🏆 Leaderboard</h2>" +
+"<div id='leaderboard'>Loading...</div>"
+);
+
+
+try{
+
+const data =
+await api(
+"/api/leaderboard",
+{
+method:"POST"
+}
+);
+
+
+let html = "";
+
+
+data.leaderboard
+.forEach(
+(row,i)=>{
+
+let medal =
+"🔹";
+
+if(i===0) medal="🥇";
+
+if(i===1) medal="🥈";
+
+if(i===2) medal="🥉";
+
+
+html +=
+
+"<div class='row'>" +
+
+"<span>" +
+medal +
+" " +
+(i+1) +
+". " +
+(row.username || "Gamer") +
+"</span>" +
+
+"<b>" +
+Number(
+row.note_balance || 0
+).toFixed(0) +
+" NOTE</b>" +
+
+"</div>";
+
+}
+);
+
+
+document.getElementById(
+"leaderboard"
+).innerHTML =
+html || "No players yet.";
+
+
+}catch(e){
+
+showToast(
+"⚠️ " + e.message
+);
+
+}
+
+}
+
+
+async function openWallet(){
+
+openModal(
+"<h2>💰 Wallet</h2>" +
+"<div class='row'>" +
+"<span>NOTE</span>" +
+"<b id='walletNote'>Loading...</b>" +
+"</div>" +
+"<div class='row'>" +
+"<span>SIKKA</span>" +
+"<b id='walletSikka'>Loading...</b>" +
+"</div>" +
+"<button class='primary' onclick='showSoon()'>💸 WITHDRAW</button>"
+);
+
+
+try{
+
+const data =
+await api(
+"/api/wallet",
+{
+method:"POST"
+}
+);
+
+
+document.getElementById(
+"walletNote"
+).innerText =
+Number(
+data.user.note || 0
+).toLocaleString();
+
+
+document.getElementById(
+"walletSikka"
+).innerText =
+Number(
+data.user.sikka || 0
+).toLocaleString();
+
+
+}catch(e){
+
+showToast(
+"⚠️ " + e.message
+);
+
+}
+
+}
+
+
+function openProfile(){
+
+openModal(
+
+"<h2>👤 Profile</h2>" +
+
+"<div class='row'>" +
+"<span>Username</span>" +
+"<b>" +
+(user.username || "Gamer") +
+"</b>" +
+"</div>" +
+
+"<div class='row'>" +
+"<span>Level</span>" +
+"<b>" +
+user.level +
+"</b>" +
+"</div>" +
+
+"<div class='row'>" +
+"<span>XP</span>" +
+"<b>" +
+user.xp +
+"</b>" +
+"</div>" +
+
+"<div class='row'>" +
+"<span>Referrals</span>" +
+"<b>" +
+user.referral_count +
+"</b>" +
+"</div>"
+
+);
+
+}
+
+
+function showSoon(){
+
+showToast(
+"🚧 Coming soon"
+);
+
+}
+
+
+function openModal(html){
+
+document.getElementById(
+"modalContent"
+).innerHTML =
+html;
+
+document.getElementById(
+"modal"
+).classList.add(
+"show"
+);
+
+}
+
+
+function closeModal(){
+
+document.getElementById(
+"modal"
+).classList.remove(
+"show"
+);
+
+}
+
+
+function closeOutside(e){
+
+if(
+e.target.id === "modal"
+){
+
+closeModal();
+
+}
+
+}
+
+
+function focusMining(){
+
+document.querySelector(
+".mine-card"
+).scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+
+}
+
+
+function scrollTopPage(){
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+
+async function load(){
+
+try{
+
+if(
+!tg ||
+!tg.initData
+){
+
+throw new Error(
+"Open MINE RUSH from Telegram"
+);
+
+}
+
+
+const data =
+await api(
+"/api/me",
+{
+method:"POST"
+}
+);
+
+
+if(!data.ok){
+
+throw new Error(
+data.error ||
+"Unable to load account"
+);
+
+}
+
+
+user =
+data.user;
+
+
+updateUI();
+
+
+document.getElementById(
+"loading"
+).classList.add(
+"hidden"
+);
+
+
+}catch(e){
+
+console.error(e);
+
+document.getElementById(
+"loading"
+).innerHTML =
+
+"⚠️<br><br>" +
+
+e.message +
+
+"<br><br>" +
+
+"<button " +
+"onclick='location.reload()' " +
+"style='padding:12px 20px;border:0;border-radius:12px;background:#ff9d00;font-weight:bold'>" +
+
+"TRY AGAIN" +
+
+"</button>";
+
+}
+
+}
+
+
+load();
 
 </script>
 
