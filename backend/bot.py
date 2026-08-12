@@ -10,31 +10,43 @@ import urllib.parse
 from urllib.parse import parse_qsl
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 from supabase import create_client
 
 
-# ==========================================
+# =========================================================
 # ENVIRONMENT VARIABLES
-# ==========================================
+# =========================================================
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY"
+)
 
 
 if not TELEGRAM_BOT_TOKEN:
-    raise RuntimeError("TELEGRAM_BOT_TOKEN is missing")
+    raise RuntimeError(
+        "TELEGRAM_BOT_TOKEN is missing"
+    )
+
 
 if not SUPABASE_URL:
-    raise RuntimeError("SUPABASE_URL is missing")
+    raise RuntimeError(
+        "SUPABASE_URL is missing"
+    )
+
 
 if not SUPABASE_SERVICE_ROLE_KEY:
-    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is missing")
+    raise RuntimeError(
+        "SUPABASE_SERVICE_ROLE_KEY is missing"
+    )
 
 
-# ==========================================
+# =========================================================
 # SUPABASE
-# ==========================================
+# =========================================================
 
 supabase = create_client(
     SUPABASE_URL,
@@ -42,23 +54,44 @@ supabase = create_client(
 )
 
 
-# ==========================================
+# =========================================================
 # FLASK
-# ==========================================
+# =========================================================
 
 web = Flask(__name__)
 
 
-# ==========================================
-# TELEGRAM INIT DATA VALIDATION
-# ==========================================
+# =========================================================
+# CORS
+# =========================================================
+
+CORS(
+    web,
+    resources={
+        r"/api/*": {
+            "origins": "*"
+        }
+    }
+)
+
+
+# =========================================================
+# TELEGRAM MINI APP INIT DATA VALIDATION
+# =========================================================
 
 def validate_telegram_init_data(init_data):
 
     try:
 
         if not init_data:
+            print(
+                "AUTH ERROR: init_data missing"
+            )
             return None
+
+
+        # Convert Telegram query string
+        # into dictionary
 
         data = dict(
             parse_qsl(
@@ -67,34 +100,70 @@ def validate_telegram_init_data(init_data):
             )
         )
 
+
+        # Telegram sends hash separately
+
         received_hash = data.pop(
             "hash",
             None
         )
 
+
         if not received_hash:
+
+            print(
+                "AUTH ERROR: hash missing"
+            )
+
             return None
 
-        # Check auth date
-        auth_date = int(
-            data.get(
-                "auth_date",
-                0
+
+        # =================================================
+        # CHECK AUTH DATE
+        # =================================================
+
+        try:
+
+            auth_date = int(
+                data.get(
+                    "auth_date",
+                    0
+                )
             )
-        )
+
+        except Exception:
+
+            print(
+                "AUTH ERROR: invalid auth_date"
+            )
+
+            return None
+
 
         current_time = int(
             time.time()
         )
 
-        # Authentication older than 24 hours = invalid
+
+        # 24 hour validity
+
         if (
             auth_date <= 0
-            or current_time - auth_date > 86400
+            or
+            current_time - auth_date > 86400
         ):
+
+            print(
+                "AUTH ERROR: initData expired"
+            )
+
             return None
 
-        # Telegram data check string
+
+        # =================================================
+        # DATA CHECK STRING
+        # =================================================
+
         data_check_string = "\n".join(
             f"{key}={value}"
             for key, value in sorted(
@@ -102,7 +171,11 @@ def validate_telegram_init_data(init_data):
             )
         )
 
-        # Telegram secret key
+
+        # =================================================
+        # TELEGRAM SECRET KEY
+        # =================================================
+
         secret_key = hmac.new(
             b"WebAppData",
             TELEGRAM_BOT_TOKEN.encode(
@@ -111,7 +184,11 @@ def validate_telegram_init_data(init_data):
             hashlib.sha256
         ).digest()
 
-        # Calculate hash
+
+        # =================================================
+        # CALCULATE HASH
+        # =================================================
+
         calculated_hash = hmac.new(
             secret_key,
             data_check_string.encode(
@@ -120,28 +197,48 @@ def validate_telegram_init_data(init_data):
             hashlib.sha256
         ).hexdigest()
 
-        # Compare hashes
+
+        # =================================================
+        # COMPARE HASH
+        # =================================================
+
         if not hmac.compare_digest(
             calculated_hash,
             received_hash
         ):
+
+            print(
+                "AUTH ERROR: hash mismatch"
+            )
+
             return None
 
+
+        print(
+            "✅ TELEGRAM INIT DATA VALID"
+        )
+
         return data
+
 
     except Exception as e:
 
         print(
-            "TELEGRAM AUTH ERROR:",
+            "❌ TELEGRAM AUTH ERROR:"
+        )
+
+        print(
             str(e)
         )
+
+        traceback.print_exc()
 
         return None
 
 
-# ==========================================
-# TELEGRAM SEND MESSAGE
-# ==========================================
+# =========================================================
+# SEND TELEGRAM MESSAGE
+# =========================================================
 
 def send_telegram_message(
     chat_id,
@@ -155,12 +252,17 @@ def send_telegram_message(
             f"bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         )
 
+
         data = urllib.parse.urlencode({
+
             "chat_id": chat_id,
+
             "text": text
+
         }).encode(
             "utf-8"
         )
+
 
         telegram_request = (
             urllib.request.Request(
@@ -169,6 +271,7 @@ def send_telegram_message(
                 method="POST"
             )
         )
+
 
         with urllib.request.urlopen(
             telegram_request,
@@ -181,26 +284,34 @@ def send_telegram_message(
                 .decode("utf-8")
             )
 
+
             print(
                 "TELEGRAM RESPONSE:",
                 result
             )
 
+
             return result
+
 
     except Exception as e:
 
         print(
-            "TELEGRAM SEND ERROR:",
+            "❌ TELEGRAM SEND ERROR:"
+        )
+
+        print(
             str(e)
         )
+
+        traceback.print_exc()
 
         return None
 
 
-# ==========================================
+# =========================================================
 # HOME
-# ==========================================
+# =========================================================
 
 @web.route("/")
 def home():
@@ -210,22 +321,27 @@ def home():
     )
 
 
-# ==========================================
+# =========================================================
 # HEALTH
-# ==========================================
+# =========================================================
 
 @web.route("/health")
 def health():
 
-    return {
+    return jsonify({
+
         "ok": True,
-        "service": "MINE RUSH"
-    }
+
+        "service": "MINE RUSH",
+
+        "status": "running"
+
+    })
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM WEBHOOK
-# ==========================================
+# =========================================================
 
 @web.post("/telegram")
 def telegram_webhook():
@@ -234,11 +350,13 @@ def telegram_webhook():
         "📩 TELEGRAM UPDATE RECEIVED"
     )
 
+
     try:
 
         data = request.get_json(
             force=True
         )
+
 
         print(
             "TELEGRAM UPDATE:",
@@ -248,9 +366,13 @@ def telegram_webhook():
             )
         )
 
+
         message = data.get(
             "message"
         )
+
+
+        # Ignore updates without message
 
         if not message:
 
@@ -262,22 +384,27 @@ def telegram_webhook():
             {}
         )
 
+
         telegram_user = message.get(
             "from",
             {}
         )
 
+
         chat_id = chat.get(
             "id"
         )
+
 
         telegram_id = telegram_user.get(
             "id"
         )
 
+
         username = telegram_user.get(
             "username"
         )
+
 
         text = message.get(
             "text",
@@ -290,10 +417,12 @@ def telegram_webhook():
             telegram_id
         )
 
+
         print(
             "USERNAME:",
             username
         )
+
 
         print(
             "TEXT:",
@@ -301,11 +430,20 @@ def telegram_webhook():
         )
 
 
-        # ==================================
+        # =================================================
         # /START
-        # ==================================
+        # =================================================
 
         if text.strip() == "/start":
+
+            print(
+                "START COMMAND RECEIVED"
+            )
+
+
+            # ---------------------------------------------
+            # FIND USER
+            # ---------------------------------------------
 
             result = (
                 supabase
@@ -319,9 +457,9 @@ def telegram_webhook():
             )
 
 
-            # ==================================
+            # =================================================
             # NEW USER
-            # ==================================
+            # =================================================
 
             if not result.data:
 
@@ -329,39 +467,63 @@ def telegram_webhook():
                     "CREATING NEW USER"
                 )
 
+
                 insert_result = (
                     supabase
                     .table("users")
                     .insert({
-                        "telegram_id": telegram_id,
-                        "username": username,
-                        "note_balance": 0,
-                        "sikka_balance": 0,
-                        "xp": 0,
-                        "level": 1
+
+                        "telegram_id":
+                            telegram_id,
+
+                        "username":
+                            username,
+
+                        "note_balance":
+                            0,
+
+                        "sikka_balance":
+                            0,
+
+                        "xp":
+                            0,
+
+                        "level":
+                            1
+
                     })
                     .execute()
                 )
+
 
                 user = (
                     insert_result.data[0]
                 )
 
+
                 message_text = (
+
                     "🔥 MINE RUSH 🔥\n\n"
+
                     "🎉 Welcome to MINE RUSH!\n\n"
+
                     "🪙 NOTE: 0\n"
+
                     "🪙 SIKKA: 0\n"
+
                     "⭐ Level: 1\n"
+
                     "⚡ XP: 0\n\n"
+
                     "Your account has been "
                     "created! 🚀"
+
                 )
 
 
-            # ==================================
+            # =================================================
             # EXISTING USER
-            # ==================================
+            # =================================================
 
             else:
 
@@ -369,46 +531,60 @@ def telegram_webhook():
                     "EXISTING USER"
                 )
 
+
                 user = result.data[0]
+
 
                 note = user.get(
                     "note_balance",
                     0
                 )
 
+
                 sikka = user.get(
                     "sikka_balance",
                     0
                 )
+
 
                 xp = user.get(
                     "xp",
                     0
                 )
 
+
                 level = user.get(
                     "level",
                     1
                 )
 
+
                 message_text = (
+
                     "🔥 MINE RUSH 🔥\n\n"
+
                     f"🪙 NOTE: {note}\n"
+
                     f"🪙 SIKKA: {sikka}\n"
+
                     f"⭐ Level: {level}\n"
+
                     f"⚡ XP: {xp}\n\n"
+
                     "Welcome back! 🚀"
+
                 )
 
 
-            # ==================================
-            # SEND TELEGRAM MESSAGE
-            # ==================================
+            # =================================================
+            # SEND TELEGRAM RESPONSE
+            # =================================================
 
             send_telegram_message(
                 chat_id,
                 message_text
             )
+
 
             print(
                 "✅ START RESPONSE SENT"
@@ -421,24 +597,27 @@ def telegram_webhook():
     except Exception as e:
 
         print(
-            "❌ WEBHOOK ERROR"
+            "❌ WEBHOOK ERROR:"
         )
+
 
         print(
             str(e)
         )
 
+
         traceback.print_exc()
 
+
         # Return 200 so Telegram does not
-        # repeatedly retry the same update.
+        # repeatedly resend the same update.
 
         return "OK"
 
 
-# ==========================================
+# =========================================================
 # MINI APP USER API
-# ==========================================
+# =========================================================
 
 @web.post("/api/me")
 def get_me():
@@ -447,31 +626,39 @@ def get_me():
         "📱 MINI APP /api/me REQUEST"
     )
 
+
     try:
 
-        # ----------------------------------
-        # Get Telegram signed initData
-        # ----------------------------------
+        # =================================================
+        # GET TELEGRAM INIT DATA
+        # =================================================
 
         init_data = request.headers.get(
             "X-Telegram-Init-Data",
             ""
         )
 
+
         if not init_data:
 
+            print(
+                "❌ MINI APP AUTH DATA MISSING"
+            )
+
+
             return jsonify({
+
                 "ok": False,
-                "error": (
-                    "Telegram authentication "
-                    "data missing"
-                )
+
+                "error":
+                    "Telegram authentication data missing"
+
             }), 401
 
 
-        # ----------------------------------
-        # Validate Telegram data
-        # ----------------------------------
+        # =================================================
+        # VALIDATE TELEGRAM DATA
+        # =================================================
 
         validated = (
             validate_telegram_init_data(
@@ -479,47 +666,86 @@ def get_me():
             )
         )
 
+
         if not validated:
 
+            print(
+                "❌ MINI APP AUTH INVALID"
+            )
+
+
             return jsonify({
+
                 "ok": False,
-                "error": (
-                    "Invalid Telegram "
-                    "authentication"
-                )
+
+                "error":
+                    "Invalid Telegram authentication"
+
             }), 401
 
 
-        # ----------------------------------
-        # Telegram user JSON
-        # ----------------------------------
+        # =================================================
+        # GET TELEGRAM USER
+        # =================================================
 
         user_json = validated.get(
             "user"
         )
 
+
         if not user_json:
 
+            print(
+                "❌ TELEGRAM USER MISSING"
+            )
+
+
             return jsonify({
+
                 "ok": False,
-                "error": (
+
+                "error":
                     "Telegram user missing"
-                )
+
             }), 401
 
 
-        telegram_user = json.loads(
-            user_json
-        )
+        try:
 
+            telegram_user = json.loads(
+                user_json
+            )
+
+        except Exception:
+
+            print(
+                "❌ TELEGRAM USER JSON INVALID"
+            )
+
+
+            return jsonify({
+
+                "ok": False,
+
+                "error":
+                    "Invalid Telegram user data"
+
+            }), 401
+
+
+        # =================================================
+        # USER INFORMATION
+        # =================================================
 
         telegram_id = telegram_user.get(
             "id"
         )
 
+
         username = telegram_user.get(
             "username"
         )
+
 
         first_name = telegram_user.get(
             "first_name"
@@ -528,23 +754,30 @@ def get_me():
 
         if not telegram_id:
 
+            print(
+                "❌ TELEGRAM ID MISSING"
+            )
+
+
             return jsonify({
+
                 "ok": False,
-                "error": (
+
+                "error":
                     "Telegram ID missing"
-                )
+
             }), 401
 
 
         print(
-            "AUTHENTICATED USER:",
+            "AUTHENTICATED TELEGRAM USER:",
             telegram_id
         )
 
 
-        # ==================================
-        # FIND USER
-        # ==================================
+        # =================================================
+        # FIND USER IN SUPABASE
+        # =================================================
 
         result = (
             supabase
@@ -558,9 +791,9 @@ def get_me():
         )
 
 
-        # ==================================
-        # CREATE USER
-        # ==================================
+        # =================================================
+        # CREATE USER IF NOT EXISTS
+        # =================================================
 
         if not result.data:
 
@@ -568,65 +801,93 @@ def get_me():
                 "MINI APP: CREATING USER"
             )
 
+
             insert_result = (
                 supabase
                 .table("users")
                 .insert({
-                    "telegram_id": telegram_id,
-                    "username": username,
-                    "note_balance": 0,
-                    "sikka_balance": 0,
-                    "xp": 0,
-                    "level": 1
+
+                    "telegram_id":
+                        telegram_id,
+
+                    "username":
+                        username,
+
+                    "note_balance":
+                        0,
+
+                    "sikka_balance":
+                        0,
+
+                    "xp":
+                        0,
+
+                    "level":
+                        1
+
                 })
                 .execute()
             )
+
 
             user = (
                 insert_result.data[0]
             )
 
 
-        # ==================================
+        # =================================================
         # EXISTING USER
-        # ==================================
+        # =================================================
 
         else:
+
+            print(
+                "MINI APP: EXISTING USER"
+            )
+
 
             user = result.data[0]
 
 
-        # ==================================
-        # RESPONSE
-        # ==================================
+        # =================================================
+        # PREPARE RESPONSE
+        # =================================================
 
         response_user = {
 
-            "telegram_id": telegram_id,
+            "telegram_id":
+                telegram_id,
 
-            "username": username,
+            "username":
+                username,
 
-            "first_name": first_name,
+            "first_name":
+                first_name,
 
-            "note": user.get(
-                "note_balance",
-                0
-            ),
+            "note":
+                user.get(
+                    "note_balance",
+                    0
+                ),
 
-            "sikka": user.get(
-                "sikka_balance",
-                0
-            ),
+            "sikka":
+                user.get(
+                    "sikka_balance",
+                    0
+                ),
 
-            "xp": user.get(
-                "xp",
-                0
-            ),
+            "xp":
+                user.get(
+                    "xp",
+                    0
+                ),
 
-            "level": user.get(
-                "level",
-                1
-            )
+            "level":
+                user.get(
+                    "level",
+                    1
+                )
+
         }
 
 
@@ -640,7 +901,8 @@ def get_me():
 
             "ok": True,
 
-            "user": response_user
+            "user":
+                response_user
 
         })
 
@@ -651,46 +913,61 @@ def get_me():
             "❌ /api/me ERROR:"
         )
 
+
         print(
             str(e)
         )
 
+
         traceback.print_exc()
+
 
         return jsonify({
 
             "ok": False,
 
-            "error": "Server error"
+            "error":
+                "Server error"
 
         }), 500
 
 
-# ==========================================
+# =========================================================
 # START SERVER
-# ==========================================
+# =========================================================
 
 if __name__ == "__main__":
+
 
     print(
         "================================="
     )
 
+
     print(
         "🔥 MINE RUSH BACKEND STARTING"
     )
+
 
     print(
         "🗄️ SUPABASE CONNECTED"
     )
 
+
     print(
         "📡 TELEGRAM WEBHOOK MODE"
     )
 
+
     print(
         "📱 MINI APP API ENABLED"
     )
+
+
+    print(
+        "🌐 CORS ENABLED"
+    )
+
 
     print(
         "================================="
