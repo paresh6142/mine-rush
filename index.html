@@ -1,117 +1,389 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>MINE RUSH</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINE RUSH</title>
 
-    <style>
-        body {
-            margin: 0;
-            background: #0d1117;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
+<style>
+*{
+    box-sizing:border-box;
+}
 
-        .container {
-            padding: 25px 15px;
-        }
+body{
+    margin:0;
+    background:#090d13;
+    color:#fff;
+    font-family:Arial,sans-serif;
+}
 
-        h1 {
-            margin-bottom: 25px;
-        }
+.app{
+    max-width:480px;
+    margin:auto;
+    min-height:100vh;
+    padding:16px;
+    padding-bottom:90px;
+}
 
-        .balance {
-            background: #171d27;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
+/* HEADER */
 
-        .coins {
-            font-size: 38px;
-            font-weight: bold;
-            margin: 8px;
-        }
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
 
-        .rupees {
-            color: #9da7b5;
-        }
+.logo{
+    font-size:22px;
+    font-weight:800;
+}
 
-        .mine-button {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            border: none;
-            background: #f5a623;
-            font-size: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 30px #f5a62355;
-        }
+.profile{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:#1b2430;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
 
-        .mine-button:active {
-            transform: scale(0.95);
-        }
+/* BALANCE */
 
-        .stats {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
+.balance{
+    background:linear-gradient(145deg,#171f2b,#10161f);
+    border:1px solid #273342;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:12px;
+}
 
-        .stat {
-            flex: 1;
-            background: #171d27;
-            padding: 15px;
-            border-radius: 15px;
-        }
+.balance-title{
+    color:#9da7b5;
+    font-size:12px;
+}
 
-        .stat-title {
-            color: #9da7b5;
-            font-size: 12px;
-        }
+.note{
+    font-size:38px;
+    font-weight:800;
+    margin:6px 0;
+}
 
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
+.rupees{
+    color:#aab4c2;
+    font-size:13px;
+}
 
-        .menu {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 25px;
-        }
+.tokens{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
 
-        .menu button {
-            padding: 18px 10px;
-            border: 1px solid #293241;
-            background: #171d27;
-            color: white;
-            border-radius: 15px;
-            font-size: 15px;
-        }
+.token{
+    flex:1;
+    background:#0c121a;
+    border-radius:14px;
+    padding:12px;
+}
 
-        .soon {
-            color: #f5a623;
-            font-size: 12px;
-            margin-top: 20px;
-        }
-    </style>
+.token-name{
+    color:#929dac;
+    font-size:11px;
+}
+
+.token-value{
+    font-size:18px;
+    font-weight:bold;
+    margin-top:4px;
+}
+
+/* MINING */
+
+.mining{
+    background:#121923;
+    border:1px solid #273342;
+    border-radius:20px;
+    padding:18px;
+    margin-top:12px;
+}
+
+.mining-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.mining-title{
+    font-size:17px;
+    font-weight:bold;
+}
+
+.status{
+    font-size:11px;
+    padding:6px 9px;
+    border-radius:20px;
+    background:#16351f;
+    color:#65e58a;
+}
+
+.progress{
+    height:8px;
+    background:#252d38;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:16px;
+}
+
+.progress-bar{
+    width:42%;
+    height:100%;
+    background:#f5a623;
+}
+
+.mining-info{
+    display:flex;
+    justify-content:space-between;
+    margin-top:10px;
+    font-size:12px;
+    color:#9da7b5;
+}
+
+.start{
+    width:100%;
+    border:0;
+    margin-top:16px;
+    padding:15px;
+    border-radius:14px;
+    background:#f5a623;
+    color:#111;
+    font-weight:800;
+    font-size:16px;
+    cursor:pointer;
+}
+
+/* MINER */
+
+.section-title{
+    margin:20px 0 10px;
+    font-size:17px;
+    font-weight:bold;
+}
+
+.miner{
+    background:#121923;
+    border:1px solid #273342;
+    border-radius:18px;
+    padding:15px;
+    margin-bottom:10px;
+}
+
+.miner-head{
+    display:flex;
+    justify-content:space-between;
+}
+
+.miner-name{
+    font-weight:bold;
+}
+
+.miner-price{
+    color:#f5a623;
+    font-weight:bold;
+}
+
+.miner-details{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-top:13px;
+}
+
+.detail{
+    background:#0b1118;
+    padding:9px;
+    border-radius:10px;
+}
+
+.detail small{
+    display:block;
+    color:#7f8a99;
+    font-size:9px;
+}
+
+.detail strong{
+    display:block;
+    margin-top:3px;
+    font-size:12px;
+}
+
+/* ACTIONS */
+
+.actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:15px;
+}
+
+.action{
+    background:#121923;
+    border:1px solid #273342;
+    color:white;
+    border-radius:15px;
+    padding:16px 10px;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.action span{
+    display:block;
+    font-size:21px;
+    margin-bottom:5px;
+}
+
+/* LEADERBOARD */
+
+.leader{
+    background:#121923;
+    border:1px solid #273342;
+    border-radius:18px;
+    padding:15px;
+}
+
+.rank{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid #222b36;
+}
+
+.rank:last-child{
+    border-bottom:0;
+}
+
+.rank-left{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.rank-number{
+    width:28px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.rank-name{
+    font-size:13px;
+}
+
+.rank-score{
+    font-size:12px;
+    color:#f5a623;
+}
+
+/* BOTTOM NAV */
+
+.bottom{
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:480px;
+    background:#10161f;
+    border-top:1px solid #273342;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    padding:9px 5px;
+}
+
+.nav{
+    background:none;
+    border:0;
+    color:#8d98a7;
+    font-size:10px;
+}
+
+.nav span{
+    display:block;
+    font-size:19px;
+    margin-bottom:3px;
+}
+
+.nav.active{
+    color:#f5a623;
+}
+
+/* MODAL */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#000b;
+    align-items:flex-end;
+    justify-content:center;
+}
+
+.modal-box{
+    width:100%;
+    max-width:480px;
+    background:#121923;
+    border-radius:22px 22px 0 0;
+    padding:20px;
+    border:1px solid #273342;
+}
+
+.modal-title{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.close{
+    width:100%;
+    padding:13px;
+    border:0;
+    border-radius:12px;
+    background:#252e39;
+    color:white;
+    margin-top:15px;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-    <h1>🔥 MINE RUSH</h1>
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div class="logo">
+            🔥 MINE RUSH
+        </div>
+
+        <div class="profile">
+            👤
+        </div>
+
+    </div>
+
+
+    <!-- MAIN BALANCE -->
 
     <div class="balance">
-        <div>💰 MINE BALANCE</div>
 
-        <div class="coins" id="coins">
+        <div class="balance-title">
+            MAIN TOKEN
+        </div>
+
+        <div class="note" id="note">
             0
         </div>
 
@@ -119,100 +391,457 @@
             ≈ ₹<span id="rupees">0.00</span>
         </div>
 
-        <div class="rupees">
-            10,000 MINE = ₹1
-        </div>
-    </div>
+        <div class="tokens">
 
-    <button class="mine-button" onclick="mine()">
-        ⛏️<br>
-        MINE
-    </button>
+            <div class="token">
+                <div class="token-name">
+                    NOTE
+                </div>
 
-    <div class="stats">
-
-        <div class="stat">
-            <div class="stat-title">⚡ ENERGY</div>
-            <div class="stat-value">
-                <span id="energy">100</span>/100
+                <div class="token-value" id="noteSmall">
+                    0
+                </div>
             </div>
-        </div>
 
-        <div class="stat">
-            <div class="stat-title">⚡ BOOST</div>
-            <div class="stat-value">
-                +<span id="boost">0.00</span>%
+            <div class="token">
+                <div class="token-name">
+                    SIKKA
+                </div>
+
+                <div class="token-value" id="sikka">
+                    0
+                </div>
             </div>
+
         </div>
 
     </div>
 
-    <div class="menu">
 
-        <button onclick="alert('Referral system coming soon')">
-            👥<br>REFER
-        </button>
+    <!-- MINING -->
 
-        <button onclick="alert('🎁 Daily Bonus coming soon')">
-            🎁<br>BONUS
-        </button>
+    <div class="mining">
 
-        <button onclick="alert('🛒 MINE Shop coming soon')">
-            🛒<br>SHOP
-        </button>
+        <div class="mining-top">
 
-        <button onclick="alert('💸 WITHDRAWAL SOON')">
-            💸<br>WITHDRAW
+            <div class="mining-title">
+                ⛏️ Mining
+            </div>
+
+            <div class="status">
+                ACTIVE
+            </div>
+
+        </div>
+
+        <div class="progress">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+
+        <div class="mining-info">
+
+            <span>
+                Speed:
+                <b id="speed">0.25</b> NOTE/min
+            </span>
+
+            <span>
+                <b id="timer">00:00</b>
+            </span>
+
+        </div>
+
+        <button class="start" onclick="startMining()">
+            ▶ START MINING
         </button>
 
     </div>
 
-    <div class="soon">
-        🚧 Withdrawal Soon
+
+    <!-- MINERS -->
+
+    <div class="section-title">
+        ⛏️ My Miners
+    </div>
+
+
+    <div class="miner">
+
+        <div class="miner-head">
+
+            <div class="miner-name">
+                Starter Miner
+            </div>
+
+            <div class="miner-price">
+                FREE
+            </div>
+
+        </div>
+
+        <div class="miner-details">
+
+            <div class="detail">
+                <small>SPEED</small>
+                <strong>0.10/min</strong>
+            </div>
+
+            <div class="detail">
+                <small>CYCLE</small>
+                <strong>4 Hours</strong>
+            </div>
+
+            <div class="detail">
+                <small>STATUS</small>
+                <strong>Ready</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ACTIONS -->
+
+    <div class="actions">
+
+        <button class="action" onclick="openBox('miners')">
+            <span>⛏️</span>
+            MINERS
+        </button>
+
+        <button class="action" onclick="openBox('market')">
+            <span>🏪</span>
+            MARKET
+        </button>
+
+        <button class="action" onclick="openBox('refer')">
+            <span>👥</span>
+            REFER
+        </button>
+
+        <button class="action" onclick="openBox('ads')">
+            <span>📺</span>
+            ADS
+        </button>
+
+        <button class="action" onclick="openBox('withdraw')">
+            <span>💸</span>
+            WITHDRAW
+        </button>
+
+        <button class="action" onclick="openBox('games')">
+            <span>🎮</span>
+            GAMES
+        </button>
+
+    </div>
+
+
+    <!-- LEADERBOARD -->
+
+    <div class="section-title">
+        🏆 Leaderboard
+    </div>
+
+    <div class="leader">
+
+        <div class="rank">
+
+            <div class="rank-left">
+                <div class="rank-number">1</div>
+                <div class="rank-name">Player 1</div>
+            </div>
+
+            <div class="rank-score">
+                25,420 NOTE
+            </div>
+
+        </div>
+
+        <div class="rank">
+
+            <div class="rank-left">
+                <div class="rank-number">2</div>
+                <div class="rank-name">Player 2</div>
+            </div>
+
+            <div class="rank-score">
+                18,760 NOTE
+            </div>
+
+        </div>
+
+        <div class="rank">
+
+            <div class="rank-left">
+                <div class="rank-number">3</div>
+                <div class="rank-name">Player 3</div>
+            </div>
+
+            <div class="rank-score">
+                12,430 NOTE
+            </div>
+
+        </div>
+
     </div>
 
 </div>
 
+
+<!-- BOTTOM NAV -->
+
+<div class="bottom">
+
+    <button class="nav active">
+        <span>🏠</span>
+        HOME
+    </button>
+
+    <button class="nav" onclick="openBox('miners')">
+        <span>⛏️</span>
+        MINERS
+    </button>
+
+    <button class="nav" onclick="openBox('market')">
+        <span>🏪</span>
+        MARKET
+    </button>
+
+    <button class="nav" onclick="openBox('profile')">
+        <span>👤</span>
+        PROFILE
+    </button>
+
+</div>
+
+
+<!-- MODAL -->
+
+<div class="modal" id="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-title" id="modalTitle">
+            MINE RUSH
+        </div>
+
+        <div id="modalContent">
+            Coming soon
+        </div>
+
+        <button class="close" onclick="closeBox()">
+            CLOSE
+        </button>
+
+    </div>
+
+</div>
+
+
 <script>
 
-let coins = 0;
-let energy = 100;
+let note = 0;
+let sikka = 0;
 
-function updateScreen() {
+let mining = false;
 
-    document.getElementById("coins").innerText =
-        coins.toLocaleString();
+let miningSpeed = 0.25;
+
+let miningSeconds = 0;
+
+let miningInterval = null;
+
+
+/* ==========================================
+   UPDATE BALANCE
+========================================== */
+
+function updateBalance(){
+
+    document.getElementById("note").innerText =
+        Math.floor(note).toLocaleString();
+
+    document.getElementById("noteSmall").innerText =
+        Math.floor(note).toLocaleString();
+
+    document.getElementById("sikka").innerText =
+        Math.floor(sikka).toLocaleString();
+
+    /*
+       NOTE VALUE
+       1000 NOTE = ₹1
+    */
 
     document.getElementById("rupees").innerText =
-        (coins / 10000).toFixed(2);
-
-    document.getElementById("energy").innerText =
-        energy;
+        (note / 1000).toFixed(2);
 }
 
-function mine() {
 
-    if (energy <= 0) {
-        alert("⚡ Energy khatam ho gayi!");
+/* ==========================================
+   START MINING
+========================================== */
+
+function startMining(){
+
+    if(mining){
         return;
     }
 
-    coins = coins + 1;
-    energy = energy - 1;
+    mining = true;
 
-    updateScreen();
+    miningSeconds = 0;
+
+    document.querySelector(".status").innerText =
+        "MINING";
+
+    document.querySelector(".start").innerText =
+        "⛏️ MINING ACTIVE";
+
+    miningInterval = setInterval(function(){
+
+        miningSeconds++;
+
+        /*
+           1 minute = miningSpeed NOTE
+        */
+
+        note += miningSpeed / 60;
+
+        updateBalance();
+
+        let minutes =
+            Math.floor(miningSeconds / 60);
+
+        let seconds =
+            miningSeconds % 60;
+
+        document.getElementById("timer").innerText =
+            String(minutes).padStart(2,"0")
+            + ":"
+            + String(seconds).padStart(2,"0");
+
+        let progress =
+            ((miningSeconds % 60) / 60) * 100;
+
+        document.getElementById("progress").style.width =
+            progress + "%";
+
+    },1000);
+
 }
 
-/* Every 30 seconds: +1 Energy */
 
-setInterval(function() {
+/* ==========================================
+   MODALS
+========================================== */
 
-    if (energy < 100) {
-        energy = energy + 1;
-        updateScreen();
+function openBox(type){
+
+    let title = "";
+    let content = "";
+
+    if(type === "miners"){
+
+        title = "⛏️ MINERS";
+
+        content = `
+            <p>Different miners will be available here.</p>
+            <p>Buy miners using NOTE.</p>
+        `;
+
     }
 
-}, 30000);
+    if(type === "market"){
+
+        title = "🏪 MARKET";
+
+        content = `
+            <p>Players will be able to list their miners.</p>
+            <p>Other players can buy them.</p>
+        `;
+
+    }
+
+    if(type === "refer"){
+
+        title = "👥 REFER";
+
+        content = `
+            <p>Invite friends and earn rewards.</p>
+            <p>Your referral system will appear here.</p>
+        `;
+
+    }
+
+    if(type === "ads"){
+
+        title = "📺 WATCH ADS";
+
+        content = `
+            <p>Watch ads and earn SIKKA.</p>
+            <p>Daily limit: 10 ads.</p>
+        `;
+
+    }
+
+    if(type === "withdraw"){
+
+        title = "💸 WITHDRAW";
+
+        content = `
+            <p>Withdrawal system will appear here.</p>
+            <p>Minimum withdrawal and payment methods will be added later.</p>
+        `;
+
+    }
+
+    if(type === "games"){
+
+        title = "🎮 MINI GAMES";
+
+        content = `
+            <p>Play mini-games to earn SIKKA.</p>
+            <p>Games will use SIKKA for rewards and spending.</p>
+        `;
+
+    }
+
+    if(type === "profile"){
+
+        title = "👤 PROFILE";
+
+        content = `
+            <p>Level: 1</p>
+            <p>XP: 0</p>
+        `;
+
+    }
+
+    document.getElementById("modalTitle").innerText =
+        title;
+
+    document.getElementById("modalContent").innerHTML =
+        content;
+
+    document.getElementById("modal").style.display =
+        "flex";
+}
+
+
+function closeBox(){
+
+    document.getElementById("modal").style.display =
+        "none";
+}
+
+
+/* ==========================================
+   INITIAL SCREEN
+========================================== */
+
+updateBalance();
 
 </script>
 
