@@ -9,7 +9,7 @@ import urllib.parse
 
 from urllib.parse import parse_qsl
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_file
 
 from supabase import create_client
 
@@ -37,17 +37,45 @@ if not TELEGRAM_BOT_TOKEN:
         "TELEGRAM_BOT_TOKEN is missing"
     )
 
-
 if not SUPABASE_URL:
     raise RuntimeError(
         "SUPABASE_URL is missing"
     )
 
-
 if not SUPABASE_SERVICE_ROLE_KEY:
     raise RuntimeError(
         "SUPABASE_SERVICE_ROLE_KEY is missing"
     )
+
+
+# =========================================================
+# PATHS
+# =========================================================
+
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+PROJECT_ROOT = os.path.dirname(
+    BASE_DIR
+)
+
+
+# Flask will search for index.html in BOTH places:
+#
+# 1. backend/index.html
+# 2. repository-root/index.html
+#
+
+INDEX_PATH_BACKEND = os.path.join(
+    BASE_DIR,
+    "index.html"
+)
+
+INDEX_PATH_ROOT = os.path.join(
+    PROJECT_ROOT,
+    "index.html"
+)
 
 
 # =========================================================
@@ -153,7 +181,6 @@ def play_keyboard():
             [
 
                 {
-
                     "text":
                         "🎮 PLAY MINE RUSH",
 
@@ -174,7 +201,7 @@ def play_keyboard():
 
 
 # =========================================================
-# SET MENU BUTTON
+# TELEGRAM MENU BUTTON
 # =========================================================
 
 def setup_menu_button():
@@ -216,7 +243,7 @@ def setup_menu_button():
 
 
 # =========================================================
-# WEBHOOK
+# TELEGRAM WEBHOOK
 # =========================================================
 
 def setup_webhook():
@@ -305,8 +332,6 @@ def validate_telegram_init_data(
             time.time()
         )
 
-
-        # 24 hour validity
 
         if (
             auth_date <= 0
@@ -463,8 +488,10 @@ def home():
 
         <p>Backend is running.</p>
 
+        <p>Mini App is available at:</p>
+
         <p>
-            Open MINE RUSH from Telegram.
+            /app
         </p>
 
     </body>
@@ -481,12 +508,91 @@ def home():
 @web.route("/app")
 def app():
 
-    return send_from_directory(
-        os.path.dirname(
-            os.path.abspath(__file__)
-        ),
-        "index.html"
+    print(
+        "📱 MINI APP /app REQUEST"
     )
+
+
+    # -----------------------------------------
+    # First try backend/index.html
+    # -----------------------------------------
+
+    if os.path.isfile(
+        INDEX_PATH_BACKEND
+    ):
+
+        print(
+            "✅ INDEX FOUND:",
+            INDEX_PATH_BACKEND
+        )
+
+        return send_file(
+            INDEX_PATH_BACKEND
+        )
+
+
+    # -----------------------------------------
+    # Then try root/index.html
+    # -----------------------------------------
+
+    if os.path.isfile(
+        INDEX_PATH_ROOT
+    ):
+
+        print(
+            "✅ INDEX FOUND:",
+            INDEX_PATH_ROOT
+        )
+
+        return send_file(
+            INDEX_PATH_ROOT
+        )
+
+
+    # -----------------------------------------
+    # If neither exists
+    # -----------------------------------------
+
+    print(
+        "❌ INDEX.HTML NOT FOUND"
+    )
+
+    print(
+        "Checked:",
+        INDEX_PATH_BACKEND
+    )
+
+    print(
+        "Checked:",
+        INDEX_PATH_ROOT
+    )
+
+
+    return """
+
+    <html>
+
+    <body
+        style="
+        font-family:Arial;
+        text-align:center;
+        padding:40px;
+        "
+    >
+
+        <h1>⚠️ MINE RUSH</h1>
+
+        <h2>index.html not found</h2>
+
+        <p>
+            Please add index.html to the project.
+        </p>
+
+    </body>
+
+    </html>
+
+    """, 500
 
 
 # =========================================================
@@ -605,10 +711,6 @@ def telegram_webhook():
         if text.strip() == "/start":
 
 
-            # ---------------------------------------------
-            # FIND USER
-            # ---------------------------------------------
-
             result = (
 
                 supabase
@@ -628,57 +730,39 @@ def telegram_webhook():
 
 
             # =================================================
-            # CREATE USER
+            # NEW USER
             # =================================================
 
             if not result.data:
-
 
                 print(
                     "🆕 CREATING USER"
                 )
 
 
-                insert_result = (
+                supabase.table(
+                    "users"
+                ).insert({
 
-                    supabase
+                    "telegram_id":
+                        telegram_id,
 
-                    .table("users")
+                    "username":
+                        username,
 
-                    .insert({
+                    "note_balance":
+                        0,
 
-                        "telegram_id":
-                            telegram_id,
+                    "sikka_balance":
+                        0,
 
-                        "username":
-                            username,
+                    "xp":
+                        0,
 
-                        "note_balance":
-                            0,
+                    "level":
+                        1
 
-                        "sikka_balance":
-                            0,
-
-                        "xp":
-                            0,
-
-                        "level":
-                            1
-
-                    })
-
-                    .execute()
-
-                )
-
-
-                note = 0
-
-                sikka = 0
-
-                xp = 0
-
-                level = 1
+                }).execute()
 
 
                 welcome_text = (
@@ -686,17 +770,17 @@ def telegram_webhook():
                     "🔥 MINE RUSH\n\n"
 
                     f"Welcome "
-                    f"{first_name}! 🚀\n\n"
+                    f"{first_name}! 👋\n\n"
 
-                    "Your MINE RUSH account "
-                    "has been created.\n\n"
+                    "Your account has been "
+                    "created successfully. 🎉\n\n"
 
                     "🪙 NOTE: 0\n"
                     "🪙 SIKKA: 0\n"
                     "⭐ LEVEL: 1\n"
                     "⚡ XP: 0\n\n"
 
-                    "Ready to start mining?"
+                    "Ready to start mining? ⛏️"
 
                 )
 
@@ -706,12 +790,6 @@ def telegram_webhook():
             # =================================================
 
             else:
-
-
-                print(
-                    "👤 EXISTING USER"
-                )
-
 
                 user = result.data[0]
 
@@ -758,10 +836,6 @@ def telegram_webhook():
                 )
 
 
-            # =================================================
-            # SEND PLAY BUTTON
-            # =================================================
-
             send_message(
 
                 chat_id,
@@ -801,14 +875,12 @@ def telegram_webhook():
 def get_me():
 
     print(
-        "📱 MINI APP /api/me"
+        "📱 MINI APP /api/me REQUEST"
     )
 
 
     try:
 
-
-        # Form data
         init_data = request.form.get(
             "init_data",
             ""
@@ -827,10 +899,6 @@ def get_me():
 
             }), 401
 
-
-        # =================================================
-        # VALIDATE
-        # =================================================
 
         validated = (
 
@@ -853,10 +921,6 @@ def get_me():
 
             }), 401
 
-
-        # =================================================
-        # USER
-        # =================================================
 
         user_json = validated.get(
             "user"
@@ -915,10 +979,6 @@ def get_me():
         )
 
 
-        # =================================================
-        # FIND USER
-        # =================================================
-
         result = (
 
             supabase
@@ -937,15 +997,10 @@ def get_me():
         )
 
 
-        # =================================================
-        # CREATE USER
-        # =================================================
-
         if not result.data:
 
-
             print(
-                "CREATING MINI APP USER"
+                "🆕 CREATING MINI APP USER"
             )
 
 
@@ -990,10 +1045,6 @@ def get_me():
             user = result.data[0]
 
 
-        # =================================================
-        # RESPONSE
-        # =================================================
-
         response_user = {
 
             "telegram_id":
@@ -1033,7 +1084,7 @@ def get_me():
 
 
         print(
-            "USER DATA:",
+            "USER DATA SENT:",
             response_user
         )
 
@@ -1071,7 +1122,7 @@ def get_me():
 
 
 # =========================================================
-# START SERVER
+# START
 # =========================================================
 
 if __name__ == "__main__":
@@ -1090,8 +1141,18 @@ if __name__ == "__main__":
     )
 
     print(
-        "📱 MINI APP:",
+        "📱 MINI APP URL:",
         MINI_APP_URL
+    )
+
+    print(
+        "📂 BACKEND INDEX:",
+        INDEX_PATH_BACKEND
+    )
+
+    print(
+        "📂 ROOT INDEX:",
+        INDEX_PATH_ROOT
     )
 
     print(
@@ -1099,11 +1160,8 @@ if __name__ == "__main__":
     )
 
 
-    # Set Telegram menu button
     setup_menu_button()
 
-
-    # Set Telegram webhook
     setup_webhook()
 
 
