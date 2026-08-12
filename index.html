@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -21,355 +22,264 @@
 }
 
 body{
+
     margin:0;
+
     background:#090d13;
+
     color:white;
+
     font-family:Arial,sans-serif;
 }
 
 .app{
+
     max-width:480px;
+
     margin:auto;
+
     min-height:100vh;
-    padding:16px;
-    padding-bottom:90px;
-}
 
-#loading{
-    position:fixed;
-    inset:0;
-    background:#090d13;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    z-index:9999;
-}
+    padding:18px;
 
-.loader{
-    width:45px;
-    height:45px;
-    border:4px solid #293241;
-    border-top-color:#f5a623;
-    border-radius:50%;
-    animation:spin 1s linear infinite;
-    margin-bottom:15px;
-}
-
-@keyframes spin{
-    to{
-        transform:rotate(360deg);
-    }
-}
-
-.loading-text{
-    color:#9da7b5;
-    font-size:13px;
-}
-
-#error{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:#090d13;
-    z-index:9998;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    text-align:center;
-    padding:30px;
-}
-
-.error-icon{
-    font-size:50px;
-}
-
-.error-title{
-    font-size:22px;
-    font-weight:bold;
-    margin:12px 0;
-}
-
-.error-message{
-    color:#9da7b5;
-    font-size:13px;
-    margin-bottom:20px;
-}
-
-.retry{
-    border:0;
-    background:#f5a623;
-    padding:13px 25px;
-    border-radius:12px;
-    font-weight:bold;
 }
 
 .header{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
-    margin-bottom:12px;
+
+    margin-bottom:18px;
+
 }
 
 .logo{
-    font-size:22px;
+
+    font-size:24px;
+
     font-weight:800;
+
 }
 
-.profile{
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    background:#1b2430;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
+.user{
 
-.welcome{
     color:#9da7b5;
-    font-size:13px;
+
+    font-size:14px;
+
     margin-bottom:12px;
+
 }
 
-.username{
-    color:white;
-    font-weight:bold;
-}
+.card{
 
-.balance{
-    background:linear-gradient(
-        145deg,
-        #171f2b,
-        #10161f
-    );
-    border:1px solid #273342;
+    background:#171d27;
+
+    border:1px solid #293241;
+
     border-radius:20px;
+
     padding:20px;
+
+    margin-bottom:12px;
+
 }
 
-.balance-title{
+.title{
+
     color:#9da7b5;
+
     font-size:12px;
+
 }
 
 .note{
-    font-size:38px;
+
+    font-size:42px;
+
     font-weight:800;
-    margin:6px 0;
+
+    margin:8px 0;
+
 }
 
-.rupees{
-    color:#aab4c2;
-    font-size:13px;
-}
+.rupee{
 
-.tokens{
-    display:flex;
-    gap:10px;
-    margin-top:15px;
-}
+    color:#9da7b5;
 
-.token{
-    flex:1;
-    background:#0c121a;
-    border-radius:14px;
-    padding:12px;
-}
-
-.token-name{
-    color:#929dac;
-    font-size:11px;
-}
-
-.token-value{
-    font-size:18px;
-    font-weight:bold;
-    margin-top:4px;
 }
 
 .stats{
+
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:10px;
+
+    grid-template-columns:1fr 1fr 1fr;
+
+    gap:8px;
+
+    margin-top:15px;
+
 }
 
 .stat{
-    background:#121923;
-    border:1px solid #273342;
-    border-radius:14px;
-    padding:13px;
+
+    background:#0d131c;
+
+    padding:13px 8px;
+
+    border-radius:12px;
+
+    text-align:center;
+
 }
 
 .stat-title{
-    color:#7f8a99;
+
+    color:#8b96a5;
+
     font-size:10px;
+
 }
 
 .stat-value{
+
     font-size:17px;
+
     font-weight:bold;
+
     margin-top:5px;
+
 }
 
-.mining{
-    background:#121923;
-    border:1px solid #273342;
-    border-radius:20px;
-    padding:18px;
-    margin-top:12px;
+.mine{
+
+    text-align:center;
+
 }
 
-.mining-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.mine-icon{
+
+    font-size:70px;
+
+    margin:15px;
+
 }
 
-.mining-title{
-    font-size:17px;
+.mine-button{
+
+    width:180px;
+
+    height:180px;
+
+    border-radius:50%;
+
+    border:0;
+
+    background:#f5a623;
+
+    font-size:24px;
+
     font-weight:bold;
+
+    color:#111;
+
 }
 
 .status{
-    font-size:11px;
-    padding:6px 9px;
-    border-radius:20px;
-    background:#332b18;
-    color:#f5c15b;
-}
 
-.progress{
-    height:8px;
-    background:#252d38;
-    border-radius:20px;
-    overflow:hidden;
-    margin-top:16px;
-}
+    color:#f5a623;
 
-.progress-bar{
-    width:0%;
-    height:100%;
-    background:#f5a623;
-}
+    margin-top:15px;
 
-.mining-info{
-    display:flex;
-    justify-content:space-between;
-    margin-top:10px;
-    font-size:12px;
-    color:#9da7b5;
-}
-
-.start{
-    width:100%;
-    border:0;
-    margin-top:16px;
-    padding:15px;
-    border-radius:14px;
-    background:#293241;
-    color:#777f8b;
-    font-weight:800;
-    font-size:15px;
-}
-
-.section-title{
-    margin:20px 0 10px;
-    font-size:17px;
-    font-weight:bold;
-}
-
-.actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-}
-
-.action{
-    background:#121923;
-    border:1px solid #273342;
-    color:white;
-    border-radius:15px;
-    padding:16px 10px;
-    font-size:14px;
-}
-
-.action span{
-    display:block;
-    font-size:21px;
-    margin-bottom:5px;
-}
-
-.leader{
-    background:#121923;
-    border:1px solid #273342;
-    border-radius:18px;
-    padding:15px;
-}
-
-.rank{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 0;
-    border-bottom:1px solid #222b36;
-}
-
-.rank:last-child{
-    border-bottom:0;
-}
-
-.rank-left{
-    display:flex;
-    gap:10px;
-    align-items:center;
-}
-
-.rank-number{
-    width:28px;
-    text-align:center;
-    font-weight:bold;
-}
-
-.rank-name{
     font-size:13px;
+
 }
 
-.rank-score{
-    font-size:12px;
-    color:#f5a623;
-}
+.loading{
 
-.bottom{
     position:fixed;
-    bottom:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:100%;
-    max-width:480px;
-    background:#10161f;
-    border-top:1px solid #273342;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    padding:9px 5px;
+
+    inset:0;
+
+    background:#090d13;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    flex-direction:column;
+
+    z-index:100;
+
 }
 
-.nav{
-    background:none;
+.spinner{
+
+    width:45px;
+
+    height:45px;
+
+    border:4px solid #293241;
+
+    border-top-color:#f5a623;
+
+    border-radius:50%;
+
+    animation:spin 1s linear infinite;
+
+}
+
+@keyframes spin{
+
+    to{
+
+        transform:rotate(360deg);
+
+    }
+
+}
+
+.error{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:#090d13;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-direction:column;
+
+    text-align:center;
+
+    padding:30px;
+
+    z-index:101;
+
+}
+
+.error button{
+
+    background:#f5a623;
+
     border:0;
-    color:#8d98a7;
-    font-size:10px;
-}
 
-.nav span{
-    display:block;
-    font-size:19px;
-    margin-bottom:3px;
-}
+    padding:12px 20px;
 
-.nav.active{
-    color:#f5a623;
+    border-radius:10px;
+
+    font-weight:bold;
+
 }
 
 </style>
@@ -380,49 +290,37 @@ body{
 <body>
 
 
-<!-- LOADING -->
+<div
+    class="loading"
+    id="loading"
+>
 
-<div id="loading">
+    <div class="spinner"></div>
 
-    <div class="loader"></div>
-
-    <div class="loading-text">
+    <p>
         Connecting to MINE RUSH...
-    </div>
+    </p>
 
 </div>
 
 
-<!-- ERROR -->
+<div
+    class="error"
+    id="error"
+>
 
-<div id="error">
+    <h2>⚠️ Connection Error</h2>
 
-    <div class="error-icon">
-        ⚠️
-    </div>
-
-    <div class="error-title">
-        Connection Error
-    </div>
-
-    <div
-        class="error-message"
-        id="errorMessage"
-    >
+    <p id="errorText">
         Unable to connect.
-    </div>
+    </p>
 
-    <button
-        class="retry"
-        onclick="loadUser()"
-    >
+    <button onclick="loadUser()">
         TRY AGAIN
     </button>
 
 </div>
 
-
-<!-- APP -->
 
 <div
     class="app"
@@ -437,34 +335,31 @@ body{
             🔥 MINE RUSH
         </div>
 
-        <div class="profile">
+        <div>
             👤
         </div>
 
     </div>
 
 
-    <div class="welcome">
+    <div class="user">
 
         Welcome,
 
-        <span
-            class="username"
-            id="username"
-        >
+        <b id="username">
             Player
-        </span>
+        </b>
 
     </div>
 
 
-    <!-- BALANCE -->
+    <div class="card">
 
-    <div class="balance">
 
-        <div class="balance-title">
-            MAIN TOKEN
+        <div class="title">
+            MINE BALANCE
         </div>
+
 
         <div
             class="note"
@@ -473,7 +368,8 @@ body{
             0
         </div>
 
-        <div class="rupees">
+
+        <div class="rupee">
 
             ≈ ₹
             <span id="rupees">
@@ -483,17 +379,17 @@ body{
         </div>
 
 
-        <div class="tokens">
+        <div class="stats">
 
 
-            <div class="token">
+            <div class="stat">
 
-                <div class="token-name">
-                    NOTE
+                <div class="stat-title">
+                    🪙 NOTE
                 </div>
 
                 <div
-                    class="token-value"
+                    class="stat-value"
                     id="noteSmall"
                 >
                     0
@@ -502,14 +398,14 @@ body{
             </div>
 
 
-            <div class="token">
+            <div class="stat">
 
-                <div class="token-name">
-                    SIKKA
+                <div class="stat-title">
+                    🪙 SIKKA
                 </div>
 
                 <div
-                    class="token-value"
+                    class="stat-value"
                     id="sikka"
                 >
                     0
@@ -518,317 +414,87 @@ body{
             </div>
 
 
-        </div>
-
-    </div>
-
-
-    <!-- STATS -->
-
-    <div class="stats">
-
-
-        <div class="stat">
-
-            <div class="stat-title">
-                ⭐ LEVEL
-            </div>
-
-            <div
-                class="stat-value"
-                id="level"
-            >
-                1
-            </div>
-
-        </div>
-
-
-        <div class="stat">
-
-            <div class="stat-title">
-                ⚡ XP
-            </div>
-
-            <div
-                class="stat-value"
-                id="xp"
-            >
-                0
-            </div>
-
-        </div>
-
-
-    </div>
-
-
-    <!-- MINING -->
-
-    <div class="mining">
-
-
-        <div class="mining-top">
-
-            <div class="mining-title">
-                ⛏️ Mining
-            </div>
-
-            <div class="status">
-                NOT ACTIVE
-            </div>
-
-        </div>
-
-
-        <div class="progress">
-
-            <div
-                class="progress-bar"
-                id="progress"
-            ></div>
-
-        </div>
-
-
-        <div class="mining-info">
-
-            <span>
-                Speed:
-                <b>0.00</b>
-                NOTE/min
-            </span>
-
-            <span>
-                04:00:00
-            </span>
-
-        </div>
-
-
-        <button
-            class="start"
-            disabled
-        >
-            ⏳ MINING SYSTEM
-            COMING NEXT
-        </button>
-
-
-    </div>
-
-
-    <!-- ACTIONS -->
-
-    <div class="section-title">
-        MINE RUSH
-    </div>
-
-
-    <div class="actions">
-
-
-        <button
-            class="action"
-            onclick="comingSoon('⛏️ MINERS')"
-        >
-
-            <span>⛏️</span>
-            MINERS
-
-        </button>
-
-
-        <button
-            class="action"
-            onclick="comingSoon('🏪 MARKET')"
-        >
-
-            <span>🏪</span>
-            MARKET
-
-        </button>
-
-
-        <button
-            class="action"
-            onclick="comingSoon('👥 REFER')"
-        >
-
-            <span>👥</span>
-            REFER
-
-        </button>
-
-
-        <button
-            class="action"
-            onclick="comingSoon('📺 ADS')"
-        >
-
-            <span>📺</span>
-            ADS
-
-        </button>
-
-
-        <button
-            class="action"
-            onclick="comingSoon('💸 WITHDRAW')"
-        >
-
-            <span>💸</span>
-            WITHDRAW
-
-        </button>
-
-
-        <button
-            class="action"
-            onclick="comingSoon('🎮 GAMES')"
-        >
-
-            <span>🎮</span>
-            GAMES
-
-        </button>
-
-
-    </div>
-
-
-    <!-- LEADERBOARD -->
-
-    <div class="section-title">
-        🏆 Leaderboard
-    </div>
-
-
-    <div class="leader">
-
-
-        <div class="rank">
-
-            <div class="rank-left">
-
-                <div class="rank-number">
+            <div class="stat">
+
+                <div class="stat-title">
+                    ⭐ LEVEL
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="level"
+                >
                     1
                 </div>
 
-                <div class="rank-name">
-                    Player 1
-                </div>
-
             </div>
 
-            <div class="rank-score">
-                25,420 NOTE
-            </div>
 
         </div>
 
+    </div>
 
-        <div class="rank">
 
-            <div class="rank-left">
+    <div class="card mine">
 
-                <div class="rank-number">
-                    2
-                </div>
 
-                <div class="rank-name">
-                    Player 2
-                </div>
+        <h2>
+            ⛏️ MINING
+        </h2>
 
-            </div>
 
-            <div class="rank-score">
-                18,760 NOTE
-            </div>
-
+        <div class="mine-icon">
+            ⛏️
         </div>
 
 
-        <div class="rank">
+        <button
+            class="mine-button"
+            onclick="notReady()"
+        >
 
-            <div class="rank-left">
+            MINE
 
-                <div class="rank-number">
-                    3
-                </div>
+        </button>
 
-                <div class="rank-name">
-                    Player 3
-                </div>
 
-            </div>
+        <div class="status">
 
-            <div class="rank-score">
-                12,430 NOTE
-            </div>
+            Mining system will be
+            activated next.
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+
+        <h3>
+            ⚡ EXPERIENCE
+        </h3>
+
+
+        <div>
+
+            XP:
+
+            <b id="xp">
+                0
+            </b>
 
         </div>
 
 
     </div>
 
-
-</div>
-
-
-<!-- BOTTOM NAV -->
-
-<div class="bottom">
-
-    <button class="nav active">
-
-        <span>🏠</span>
-        HOME
-
-    </button>
-
-
-    <button
-        class="nav"
-        onclick="comingSoon('⛏️ MINERS')"
-    >
-
-        <span>⛏️</span>
-        MINERS
-
-    </button>
-
-
-    <button
-        class="nav"
-        onclick="comingSoon('🏪 MARKET')"
-    >
-
-        <span>🏪</span>
-        MARKET
-
-    </button>
-
-
-    <button
-        class="nav"
-        onclick="comingSoon('👤 PROFILE')"
-    >
-
-        <span>👤</span>
-        PROFILE
-
-    </button>
 
 </div>
 
 
 <script>
 
-
-// ======================================================
-// TELEGRAM
-// ======================================================
 
 const tg =
     window.Telegram &&
@@ -837,7 +503,7 @@ const tg =
         : null;
 
 
-if (tg) {
+if(tg){
 
     tg.ready();
 
@@ -846,30 +512,16 @@ if (tg) {
 }
 
 
-// ======================================================
-// USER DATA
-// ======================================================
-
-let note = 0;
-
-let sikka = 0;
-
-let xp = 0;
-
-let level = 1;
+async function loadUser(){
 
 
-// ======================================================
-// LOAD USER
-// ======================================================
-
-async function loadUser() {
-
-
-    if (!tg || !tg.initData) {
+    if(
+        !tg ||
+        !tg.initData
+    ){
 
         showError(
-            "MINE RUSH ko Telegram ke andar Open karo."
+            "MINE RUSH ko Telegram ke andar open karo."
         );
 
         return;
@@ -877,35 +529,35 @@ async function loadUser() {
     }
 
 
-    try {
+    try{
 
 
         document.getElementById(
             "loading"
-        ).style.display = "flex";
+        ).style.display =
+            "flex";
 
 
         document.getElementById(
             "error"
-        ).style.display = "none";
-
-
-        document.getElementById(
-            "app"
-        ).style.display = "none";
+        ).style.display =
+            "none";
 
 
         /*
-         * IMPORTANT:
-         * initData is sent as FORM DATA.
-         * No custom header.
+         * Same Render domain:
+         *
+         * /app
+         * /api/me
+         *
+         * No GitHub Pages.
          */
 
-        const formData =
+        const form =
             new URLSearchParams();
 
 
-        formData.append(
+        form.append(
             "init_data",
             tg.initData
         );
@@ -913,10 +565,15 @@ async function loadUser() {
 
         const response =
             await fetch(
-                "https://mine-rush-bot.onrender.com/api/me",
+                "/api/me",
                 {
-                    method: "POST",
-                    body: formData
+
+                    method:
+                        "POST",
+
+                    body:
+                        form
+
                 }
             );
 
@@ -926,15 +583,15 @@ async function loadUser() {
 
 
         console.log(
-            "MINE RUSH RESPONSE:",
+            "MINE RUSH:",
             data
         );
 
 
-        if (
+        if(
             !response.ok ||
             !data.ok
-        ) {
+        ){
 
             throw new Error(
                 data.error ||
@@ -944,104 +601,68 @@ async function loadUser() {
         }
 
 
-        // ==================================================
-        // USER DATA
-        // ==================================================
-
-        note =
-            Number(
-                data.user.note || 0
-            );
-
-
-        sikka =
-            Number(
-                data.user.sikka || 0
-            );
-
-
-        xp =
-            Number(
-                data.user.xp || 0
-            );
-
-
-        level =
-            Number(
-                data.user.level || 1
-            );
-
-
-        // ==================================================
-        // USER NAME
-        // ==================================================
-
-        const name =
-            data.user.first_name ||
-            data.user.username ||
-            "Player";
+        const user =
+            data.user;
 
 
         document.getElementById(
             "username"
         ).innerText =
-            name;
+            user.first_name ||
+            user.username ||
+            "Player";
 
-
-        // ==================================================
-        // BALANCE
-        // ==================================================
 
         document.getElementById(
             "note"
         ).innerText =
-            note.toLocaleString();
+            Number(
+                user.note || 0
+            ).toLocaleString();
 
 
         document.getElementById(
             "noteSmall"
         ).innerText =
-            note.toLocaleString();
+            Number(
+                user.note || 0
+            ).toLocaleString();
 
 
         document.getElementById(
             "sikka"
         ).innerText =
-            sikka.toLocaleString();
-
-
-        document.getElementById(
-            "xp"
-        ).innerText =
-            xp.toLocaleString();
+            Number(
+                user.sikka || 0
+            ).toLocaleString();
 
 
         document.getElementById(
             "level"
         ).innerText =
-            level;
+            user.level || 1;
+
+
+        document.getElementById(
+            "xp"
+        ).innerText =
+            Number(
+                user.xp || 0
+            ).toLocaleString();
 
 
         document.getElementById(
             "rupees"
         ).innerText =
             (
-                note / 1000
+                Number(
+                    user.note || 0
+                ) / 10000
             ).toFixed(2);
 
 
-        // ==================================================
-        // SHOW APP
-        // ==================================================
-
         document.getElementById(
             "loading"
-        ).style.display =
-            "none";
-
-
-        document.getElementById(
-            "error"
         ).style.display =
             "none";
 
@@ -1052,25 +673,18 @@ async function loadUser() {
             "block";
 
 
-        console.log(
-            "✅ MINE RUSH USER LOADED"
-        );
-
-
     }
 
-    catch (error) {
-
+    catch(error){
 
         console.error(
-            "MINE RUSH ERROR:",
             error
         );
 
 
         showError(
             error.message ||
-            "Failed to fetch"
+            "Connection failed"
         );
 
     }
@@ -1078,12 +692,9 @@ async function loadUser() {
 }
 
 
-// ======================================================
-// ERROR
-// ======================================================
-
-function showError(message) {
-
+function showError(
+    message
+){
 
     document.getElementById(
         "loading"
@@ -1104,29 +715,19 @@ function showError(message) {
 
 
     document.getElementById(
-        "errorMessage"
+        "errorText"
     ).innerText =
         message;
 
 }
 
 
-// ======================================================
-// COMING SOON
-// ======================================================
+function notReady(){
 
-function comingSoon(name) {
-
-    if (tg) {
+    if(tg){
 
         tg.showAlert(
-            name + " system next step mein add hoga."
-        );
-
-    } else {
-
-        alert(
-            name + " system next step mein add hoga."
+            "Mining system next step mein activate hoga."
         );
 
     }
@@ -1134,11 +735,8 @@ function comingSoon(name) {
 }
 
 
-// ======================================================
-// START
-// ======================================================
-
 loadUser();
+
 
 </script>
 
