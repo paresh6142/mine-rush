@@ -1,364 +1,836 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MINE RUSH</title>
 
-<style>
-*{
-    box-sizing:border-box;
-}
+    <meta charset="UTF-8">
 
-body{
-    margin:0;
-    background:#090d13;
-    color:#fff;
-    font-family:Arial,sans-serif;
-}
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-.app{
-    max-width:480px;
-    margin:auto;
-    min-height:100vh;
-    padding:16px;
-    padding-bottom:90px;
-}
+    <title>MINE RUSH</title>
 
-/* HEADER */
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-.header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:15px;
-}
 
-.logo{
-    font-size:22px;
-    font-weight:800;
-}
+    <style>
 
-.profile{
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    background:#1b2430;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-/* BALANCE */
 
-.balance{
-    background:linear-gradient(145deg,#171f2b,#10161f);
-    border:1px solid #273342;
-    border-radius:20px;
-    padding:20px;
-    margin-bottom:12px;
-}
+        body {
 
-.balance-title{
-    color:#9da7b5;
-    font-size:12px;
-}
+            margin: 0;
 
-.note{
-    font-size:38px;
-    font-weight:800;
-    margin:6px 0;
-}
+            background: #090d13;
 
-.rupees{
-    color:#aab4c2;
-    font-size:13px;
-}
+            color: white;
 
-.tokens{
-    display:flex;
-    gap:10px;
-    margin-top:15px;
-}
+            font-family: Arial, sans-serif;
+        }
 
-.token{
-    flex:1;
-    background:#0c121a;
-    border-radius:14px;
-    padding:12px;
-}
 
-.token-name{
-    color:#929dac;
-    font-size:11px;
-}
+        .app {
 
-.token-value{
-    font-size:18px;
-    font-weight:bold;
-    margin-top:4px;
-}
+            max-width: 480px;
 
-/* MINING */
+            margin: auto;
 
-.mining{
-    background:#121923;
-    border:1px solid #273342;
-    border-radius:20px;
-    padding:18px;
-    margin-top:12px;
-}
+            min-height: 100vh;
 
-.mining-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
+            padding: 16px;
 
-.mining-title{
-    font-size:17px;
-    font-weight:bold;
-}
+            padding-bottom: 90px;
+        }
 
-.status{
-    font-size:11px;
-    padding:6px 9px;
-    border-radius:20px;
-    background:#16351f;
-    color:#65e58a;
-}
 
-.progress{
-    height:8px;
-    background:#252d38;
-    border-radius:20px;
-    overflow:hidden;
-    margin-top:16px;
-}
+        /* =========================
+           LOADING
+        ========================= */
 
-.progress-bar{
-    width:42%;
-    height:100%;
-    background:#f5a623;
-}
+        #loadingScreen {
 
-.mining-info{
-    display:flex;
-    justify-content:space-between;
-    margin-top:10px;
-    font-size:12px;
-    color:#9da7b5;
-}
+            position: fixed;
 
-.start{
-    width:100%;
-    border:0;
-    margin-top:16px;
-    padding:15px;
-    border-radius:14px;
-    background:#f5a623;
-    color:#111;
-    font-weight:800;
-    font-size:16px;
-    cursor:pointer;
-}
+            inset: 0;
 
-/* MINER */
+            background: #090d13;
 
-.section-title{
-    margin:20px 0 10px;
-    font-size:17px;
-    font-weight:bold;
-}
+            display: flex;
 
-.miner{
-    background:#121923;
-    border:1px solid #273342;
-    border-radius:18px;
-    padding:15px;
-    margin-bottom:10px;
-}
+            align-items: center;
 
-.miner-head{
-    display:flex;
-    justify-content:space-between;
-}
+            justify-content: center;
 
-.miner-name{
-    font-weight:bold;
-}
+            flex-direction: column;
 
-.miner-price{
-    color:#f5a623;
-    font-weight:bold;
-}
+            z-index: 9999;
+        }
 
-.miner-details{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:8px;
-    margin-top:13px;
-}
 
-.detail{
-    background:#0b1118;
-    padding:9px;
-    border-radius:10px;
-}
+        .loader {
 
-.detail small{
-    display:block;
-    color:#7f8a99;
-    font-size:9px;
-}
+            width: 45px;
 
-.detail strong{
-    display:block;
-    margin-top:3px;
-    font-size:12px;
-}
+            height: 45px;
 
-/* ACTIONS */
+            border: 4px solid #293241;
 
-.actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:15px;
-}
+            border-top-color: #f5a623;
 
-.action{
-    background:#121923;
-    border:1px solid #273342;
-    color:white;
-    border-radius:15px;
-    padding:16px 10px;
-    font-size:14px;
-    cursor:pointer;
-}
+            border-radius: 50%;
 
-.action span{
-    display:block;
-    font-size:21px;
-    margin-bottom:5px;
-}
+            animation: spin 1s linear infinite;
 
-/* LEADERBOARD */
+            margin-bottom: 15px;
+        }
 
-.leader{
-    background:#121923;
-    border:1px solid #273342;
-    border-radius:18px;
-    padding:15px;
-}
 
-.rank{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 0;
-    border-bottom:1px solid #222b36;
-}
+        @keyframes spin {
 
-.rank:last-child{
-    border-bottom:0;
-}
+            from {
+                transform: rotate(0deg);
+            }
 
-.rank-left{
-    display:flex;
-    gap:10px;
-    align-items:center;
-}
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-.rank-number{
-    width:28px;
-    text-align:center;
-    font-weight:bold;
-}
 
-.rank-name{
-    font-size:13px;
-}
+        .loading-text {
 
-.rank-score{
-    font-size:12px;
-    color:#f5a623;
-}
+            color: #aab4c2;
 
-/* BOTTOM NAV */
+            font-size: 13px;
+        }
 
-.bottom{
-    position:fixed;
-    bottom:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:100%;
-    max-width:480px;
-    background:#10161f;
-    border-top:1px solid #273342;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    padding:9px 5px;
-}
 
-.nav{
-    background:none;
-    border:0;
-    color:#8d98a7;
-    font-size:10px;
-}
+        /* =========================
+           ERROR
+        ========================= */
 
-.nav span{
-    display:block;
-    font-size:19px;
-    margin-bottom:3px;
-}
+        #errorScreen {
 
-.nav.active{
-    color:#f5a623;
-}
+            display: none;
 
-/* MODAL */
+            position: fixed;
 
-.modal{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:#000b;
-    align-items:flex-end;
-    justify-content:center;
-}
+            inset: 0;
 
-.modal-box{
-    width:100%;
-    max-width:480px;
-    background:#121923;
-    border-radius:22px 22px 0 0;
-    padding:20px;
-    border:1px solid #273342;
-}
+            background: #090d13;
 
-.modal-title{
-    font-size:20px;
-    font-weight:bold;
-    margin-bottom:15px;
-}
+            z-index: 9998;
 
-.close{
-    width:100%;
-    padding:13px;
-    border:0;
-    border-radius:12px;
-    background:#252e39;
-    color:white;
-    margin-top:15px;
-}
-</style>
+            padding: 30px;
+
+            text-align: center;
+
+            align-items: center;
+
+            justify-content: center;
+
+            flex-direction: column;
+        }
+
+
+        .error-icon {
+
+            font-size: 50px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .error-title {
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-bottom: 10px;
+        }
+
+
+        .error-text {
+
+            color: #9da7b5;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+
+            margin-bottom: 20px;
+        }
+
+
+        .retry {
+
+            border: 0;
+
+            background: #f5a623;
+
+            color: #111;
+
+            padding: 13px 25px;
+
+            border-radius: 12px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 15px;
+        }
+
+
+        .logo {
+
+            font-size: 22px;
+
+            font-weight: 800;
+        }
+
+
+        .profile {
+
+            width: 40px;
+
+            height: 40px;
+
+            border-radius: 50%;
+
+            background: #1b2430;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            overflow: hidden;
+        }
+
+
+        .profile img {
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+        }
+
+
+        /* =========================
+           USER
+        ========================= */
+
+        .welcome {
+
+            color: #9da7b5;
+
+            font-size: 13px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .username {
+
+            color: white;
+
+            font-weight: bold;
+        }
+
+
+        /* =========================
+           BALANCE
+        ========================= */
+
+        .balance {
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #171f2b,
+                    #10161f
+                );
+
+            border: 1px solid #273342;
+
+            border-radius: 20px;
+
+            padding: 20px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .balance-title {
+
+            color: #9da7b5;
+
+            font-size: 12px;
+        }
+
+
+        .note {
+
+            font-size: 38px;
+
+            font-weight: 800;
+
+            margin: 6px 0;
+        }
+
+
+        .rupees {
+
+            color: #aab4c2;
+
+            font-size: 13px;
+        }
+
+
+        .tokens {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 15px;
+        }
+
+
+        .token {
+
+            flex: 1;
+
+            background: #0c121a;
+
+            border-radius: 14px;
+
+            padding: 12px;
+        }
+
+
+        .token-name {
+
+            color: #929dac;
+
+            font-size: 11px;
+        }
+
+
+        .token-value {
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-top: 4px;
+        }
+
+
+        /* =========================
+           PLAYER STATS
+        ========================= */
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 10px;
+
+            margin-top: 10px;
+        }
+
+
+        .stat {
+
+            background: #121923;
+
+            border: 1px solid #273342;
+
+            border-radius: 14px;
+
+            padding: 13px;
+        }
+
+
+        .stat-title {
+
+            color: #7f8a99;
+
+            font-size: 10px;
+        }
+
+
+        .stat-value {
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            margin-top: 5px;
+        }
+
+
+        /* =========================
+           MINING
+        ========================= */
+
+        .mining {
+
+            background: #121923;
+
+            border: 1px solid #273342;
+
+            border-radius: 20px;
+
+            padding: 18px;
+
+            margin-top: 12px;
+        }
+
+
+        .mining-top {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+        }
+
+
+        .mining-title {
+
+            font-size: 17px;
+
+            font-weight: bold;
+        }
+
+
+        .status {
+
+            font-size: 11px;
+
+            padding: 6px 9px;
+
+            border-radius: 20px;
+
+            background: #332b18;
+
+            color: #f5c15b;
+        }
+
+
+        .progress {
+
+            height: 8px;
+
+            background: #252d38;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            margin-top: 16px;
+        }
+
+
+        .progress-bar {
+
+            width: 0%;
+
+            height: 100%;
+
+            background: #f5a623;
+
+            transition: width .3s;
+        }
+
+
+        .mining-info {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            margin-top: 10px;
+
+            font-size: 12px;
+
+            color: #9da7b5;
+        }
+
+
+        .start {
+
+            width: 100%;
+
+            border: 0;
+
+            margin-top: 16px;
+
+            padding: 15px;
+
+            border-radius: 14px;
+
+            background: #293241;
+
+            color: #777f8b;
+
+            font-weight: 800;
+
+            font-size: 16px;
+
+            cursor: not-allowed;
+        }
+
+
+        /* =========================
+           ACTIONS
+        ========================= */
+
+        .section-title {
+
+            margin: 20px 0 10px;
+
+            font-size: 17px;
+
+            font-weight: bold;
+        }
+
+
+        .actions {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 10px;
+
+            margin-top: 15px;
+        }
+
+
+        .action {
+
+            background: #121923;
+
+            border: 1px solid #273342;
+
+            color: white;
+
+            border-radius: 15px;
+
+            padding: 16px 10px;
+
+            font-size: 14px;
+
+            cursor: pointer;
+        }
+
+
+        .action span {
+
+            display: block;
+
+            font-size: 21px;
+
+            margin-bottom: 5px;
+        }
+
+
+        /* =========================
+           LEADERBOARD
+        ========================= */
+
+        .leader {
+
+            background: #121923;
+
+            border: 1px solid #273342;
+
+            border-radius: 18px;
+
+            padding: 15px;
+        }
+
+
+        .rank {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 10px 0;
+
+            border-bottom: 1px solid #222b36;
+        }
+
+
+        .rank:last-child {
+
+            border-bottom: 0;
+        }
+
+
+        .rank-left {
+
+            display: flex;
+
+            gap: 10px;
+
+            align-items: center;
+        }
+
+
+        .rank-number {
+
+            width: 28px;
+
+            text-align: center;
+
+            font-weight: bold;
+        }
+
+
+        .rank-name {
+
+            font-size: 13px;
+        }
+
+
+        .rank-score {
+
+            font-size: 12px;
+
+            color: #f5a623;
+        }
+
+
+        /* =========================
+           BOTTOM NAV
+        ========================= */
+
+        .bottom {
+
+            position: fixed;
+
+            bottom: 0;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            width: 100%;
+
+            max-width: 480px;
+
+            background: #10161f;
+
+            border-top: 1px solid #273342;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            padding: 9px 5px;
+
+            z-index: 100;
+        }
+
+
+        .nav {
+
+            background: none;
+
+            border: 0;
+
+            color: #8d98a7;
+
+            font-size: 10px;
+
+            cursor: pointer;
+        }
+
+
+        .nav span {
+
+            display: block;
+
+            font-size: 19px;
+
+            margin-bottom: 3px;
+        }
+
+
+        .nav.active {
+
+            color: #f5a623;
+        }
+
+
+        /* =========================
+           MODAL
+        ========================= */
+
+        .modal {
+
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background: #000b;
+
+            align-items: flex-end;
+
+            justify-content: center;
+
+            z-index: 200;
+        }
+
+
+        .modal-box {
+
+            width: 100%;
+
+            max-width: 480px;
+
+            background: #121923;
+
+            border-radius:
+                22px 22px 0 0;
+
+            padding: 20px;
+
+            border: 1px solid #273342;
+        }
+
+
+        .modal-title {
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-bottom: 15px;
+        }
+
+
+        .close {
+
+            width: 100%;
+
+            padding: 13px;
+
+            border: 0;
+
+            border-radius: 12px;
+
+            background: #252e39;
+
+            color: white;
+
+            margin-top: 15px;
+
+            cursor: pointer;
+        }
+
+    </style>
+
 </head>
+
 
 <body>
 
-<div class="app">
+
+<!-- =========================================
+     LOADING SCREEN
+========================================== -->
+
+<div id="loadingScreen">
+
+    <div class="loader"></div>
+
+    <div class="loading-text">
+        Connecting to MINE RUSH...
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     ERROR SCREEN
+========================================== -->
+
+<div id="errorScreen">
+
+    <div class="error-icon">
+        ⚠️
+    </div>
+
+    <div class="error-title">
+        Connection Error
+    </div>
+
+    <div
+        class="error-text"
+        id="errorText"
+    >
+        Unable to connect to MINE RUSH.
+    </div>
+
+    <button
+        class="retry"
+        onclick="loadUser()"
+    >
+        TRY AGAIN
+    </button>
+
+</div>
+
+
+<!-- =========================================
+     APP
+========================================== -->
+
+<div
+    class="app"
+    id="app"
+    style="display:none;"
+>
+
 
     <!-- HEADER -->
 
@@ -368,14 +840,32 @@ body{
             🔥 MINE RUSH
         </div>
 
-        <div class="profile">
+        <div
+            class="profile"
+            id="profile"
+        >
             👤
         </div>
 
     </div>
 
 
-    <!-- MAIN BALANCE -->
+    <!-- USER -->
+
+    <div class="welcome">
+
+        Welcome,
+        <span
+            class="username"
+            id="username"
+        >
+            Player
+        </span>
+
+    </div>
+
+
+    <!-- BALANCE -->
 
     <div class="balance">
 
@@ -383,37 +873,99 @@ body{
             MAIN TOKEN
         </div>
 
-        <div class="note" id="note">
+        <div
+            class="note"
+            id="note"
+        >
             0
         </div>
 
         <div class="rupees">
-            ≈ ₹<span id="rupees">0.00</span>
+
+            ≈ ₹
+            <span id="rupees">
+                0.00
+            </span>
+
         </div>
+
 
         <div class="tokens">
 
+
             <div class="token">
+
                 <div class="token-name">
                     NOTE
                 </div>
 
-                <div class="token-value" id="noteSmall">
+                <div
+                    class="token-value"
+                    id="noteSmall"
+                >
                     0
                 </div>
+
             </div>
 
+
             <div class="token">
+
                 <div class="token-name">
                     SIKKA
                 </div>
 
-                <div class="token-value" id="sikka">
+                <div
+                    class="token-value"
+                    id="sikka"
+                >
                     0
                 </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- PLAYER STATS -->
+
+    <div class="stats">
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                ⭐ LEVEL
+            </div>
+
+            <div
+                class="stat-value"
+                id="level"
+            >
+                1
             </div>
 
         </div>
+
+
+        <div class="stat">
+
+            <div class="stat-title">
+                ⚡ XP
+            </div>
+
+            <div
+                class="stat-value"
+                id="xp"
+            >
+                0
+            </div>
+
+        </div>
+
 
     </div>
 
@@ -422,118 +974,143 @@ body{
 
     <div class="mining">
 
+
         <div class="mining-top">
 
             <div class="mining-title">
                 ⛏️ Mining
             </div>
 
-            <div class="status">
-                ACTIVE
+            <div
+                class="status"
+                id="miningStatus"
+            >
+                NOT ACTIVE
             </div>
 
         </div>
 
+
         <div class="progress">
-            <div class="progress-bar" id="progress"></div>
+
+            <div
+                class="progress-bar"
+                id="progress"
+            ></div>
+
         </div>
+
 
         <div class="mining-info">
 
             <span>
                 Speed:
-                <b id="speed">0.25</b> NOTE/min
+                <b id="speed">
+                    0.00
+                </b>
+                NOTE/min
             </span>
 
-            <span>
-                <b id="timer">00:00</b>
+            <span id="timer">
+                04:00:00
             </span>
 
         </div>
 
-        <button class="start" onclick="startMining()">
-            ▶ START MINING
+
+        <button
+            class="start"
+            disabled
+        >
+            ⏳ MINING SYSTEM
+            COMING NEXT
         </button>
 
-    </div>
-
-
-    <!-- MINERS -->
-
-    <div class="section-title">
-        ⛏️ My Miners
-    </div>
-
-
-    <div class="miner">
-
-        <div class="miner-head">
-
-            <div class="miner-name">
-                Starter Miner
-            </div>
-
-            <div class="miner-price">
-                FREE
-            </div>
-
-        </div>
-
-        <div class="miner-details">
-
-            <div class="detail">
-                <small>SPEED</small>
-                <strong>0.10/min</strong>
-            </div>
-
-            <div class="detail">
-                <small>CYCLE</small>
-                <strong>4 Hours</strong>
-            </div>
-
-            <div class="detail">
-                <small>STATUS</small>
-                <strong>Ready</strong>
-            </div>
-
-        </div>
 
     </div>
 
 
     <!-- ACTIONS -->
 
+    <div class="section-title">
+        MINE RUSH
+    </div>
+
+
     <div class="actions">
 
-        <button class="action" onclick="openBox('miners')">
+
+        <button
+            class="action"
+            onclick="openBox('miners')"
+        >
+
             <span>⛏️</span>
+
             MINERS
+
         </button>
 
-        <button class="action" onclick="openBox('market')">
+
+        <button
+            class="action"
+            onclick="openBox('market')"
+        >
+
             <span>🏪</span>
+
             MARKET
+
         </button>
 
-        <button class="action" onclick="openBox('refer')">
+
+        <button
+            class="action"
+            onclick="openBox('refer')"
+        >
+
             <span>👥</span>
+
             REFER
+
         </button>
 
-        <button class="action" onclick="openBox('ads')">
+
+        <button
+            class="action"
+            onclick="openBox('ads')"
+        >
+
             <span>📺</span>
+
             ADS
+
         </button>
 
-        <button class="action" onclick="openBox('withdraw')">
+
+        <button
+            class="action"
+            onclick="openBox('withdraw')"
+        >
+
             <span>💸</span>
+
             WITHDRAW
+
         </button>
 
-        <button class="action" onclick="openBox('games')">
+
+        <button
+            class="action"
+            onclick="openBox('games')"
+        >
+
             <span>🎮</span>
+
             GAMES
+
         </button>
+
 
     </div>
 
@@ -544,13 +1121,22 @@ body{
         🏆 Leaderboard
     </div>
 
+
     <div class="leader">
+
 
         <div class="rank">
 
             <div class="rank-left">
-                <div class="rank-number">1</div>
-                <div class="rank-name">Player 1</div>
+
+                <div class="rank-number">
+                    1
+                </div>
+
+                <div class="rank-name">
+                    Player 1
+                </div>
+
             </div>
 
             <div class="rank-score">
@@ -559,11 +1145,19 @@ body{
 
         </div>
 
+
         <div class="rank">
 
             <div class="rank-left">
-                <div class="rank-number">2</div>
-                <div class="rank-name">Player 2</div>
+
+                <div class="rank-number">
+                    2
+                </div>
+
+                <div class="rank-name">
+                    Player 2
+                </div>
+
             </div>
 
             <div class="rank-score">
@@ -572,11 +1166,19 @@ body{
 
         </div>
 
+
         <div class="rank">
 
             <div class="rank-left">
-                <div class="rank-number">3</div>
-                <div class="rank-name">Player 3</div>
+
+                <div class="rank-number">
+                    3
+                </div>
+
+                <div class="rank-name">
+                    Player 3
+                </div>
+
             </div>
 
             <div class="rank-score">
@@ -585,55 +1187,108 @@ body{
 
         </div>
 
+
     </div>
 
+
 </div>
 
 
-<!-- BOTTOM NAV -->
+<!-- =========================================
+     BOTTOM NAV
+========================================== -->
 
-<div class="bottom">
+<div
+    class="bottom"
+    id="bottomNav"
+    style="display:none;"
+>
 
-    <button class="nav active">
+
+    <button
+        class="nav active"
+        onclick="closeBox()"
+    >
+
         <span>🏠</span>
+
         HOME
+
     </button>
 
-    <button class="nav" onclick="openBox('miners')">
+
+    <button
+        class="nav"
+        onclick="openBox('miners')"
+    >
+
         <span>⛏️</span>
+
         MINERS
+
     </button>
 
-    <button class="nav" onclick="openBox('market')">
+
+    <button
+        class="nav"
+        onclick="openBox('market')"
+    >
+
         <span>🏪</span>
+
         MARKET
+
     </button>
 
-    <button class="nav" onclick="openBox('profile')">
+
+    <button
+        class="nav"
+        onclick="openBox('profileBox')"
+    >
+
         <span>👤</span>
+
         PROFILE
+
     </button>
+
 
 </div>
 
 
-<!-- MODAL -->
+<!-- =========================================
+     MODAL
+========================================== -->
 
-<div class="modal" id="modal">
+<div
+    class="modal"
+    id="modal"
+>
+
 
     <div class="modal-box">
 
-        <div class="modal-title" id="modalTitle">
+
+        <div
+            class="modal-title"
+            id="modalTitle"
+        >
             MINE RUSH
         </div>
+
 
         <div id="modalContent">
             Coming soon
         </div>
 
-        <button class="close" onclick="closeBox()">
+
+        <button
+            class="close"
+            onclick="closeBox()"
+        >
             CLOSE
         </button>
+
 
     </div>
 
@@ -642,142 +1297,404 @@ body{
 
 <script>
 
-let note = 0;
-let sikka = 0;
 
-let mining = false;
-
-let miningSpeed = 0.25;
-
-let miningSeconds = 0;
-
-let miningInterval = null;
-
-
-/* ==========================================
-   UPDATE BALANCE
+/* =========================================
+   TELEGRAM MINI APP
 ========================================== */
 
-function updateBalance(){
+const tg =
+    window.Telegram &&
+    window.Telegram.WebApp
+        ? window.Telegram.WebApp
+        : null;
 
-    document.getElementById("note").innerText =
-        Math.floor(note).toLocaleString();
 
-    document.getElementById("noteSmall").innerText =
-        Math.floor(note).toLocaleString();
+if (tg) {
 
-    document.getElementById("sikka").innerText =
-        Math.floor(sikka).toLocaleString();
+    tg.ready();
+
+    tg.expand();
+
+}
+
+
+/* =========================================
+   USER VARIABLES
+========================================== */
+
+let note = 0;
+
+let sikka = 0;
+
+let xp = 0;
+
+let level = 1;
+
+let currentUser = null;
+
+
+/* =========================================
+   UPDATE SCREEN
+========================================== */
+
+function updateBalance() {
+
+
+    document.getElementById(
+        "note"
+    ).innerText =
+        Number(note)
+            .toLocaleString();
+
+
+    document.getElementById(
+        "noteSmall"
+    ).innerText =
+        Number(note)
+            .toLocaleString();
+
+
+    document.getElementById(
+        "sikka"
+    ).innerText =
+        Number(sikka)
+            .toLocaleString();
+
+
+    document.getElementById(
+        "xp"
+    ).innerText =
+        Number(xp)
+            .toLocaleString();
+
+
+    document.getElementById(
+        "level"
+    ).innerText =
+        level;
+
 
     /*
-       NOTE VALUE
+       NOTE value
+
        1000 NOTE = ₹1
     */
 
-    document.getElementById("rupees").innerText =
-        (note / 1000).toFixed(2);
+    document.getElementById(
+        "rupees"
+    ).innerText =
+        (
+            Number(note) / 1000
+        ).toFixed(2);
+
 }
 
 
-/* ==========================================
-   START MINING
+/* =========================================
+   LOAD USER
 ========================================== */
 
-function startMining(){
+async function loadUser() {
 
-    if(mining){
+
+    /*
+       Mini App must be opened
+       inside Telegram.
+    */
+
+    if (!tg || !tg.initData) {
+
+        showError(
+            "MINE RUSH ko Telegram ke andar Open karo."
+        );
+
         return;
+
     }
 
-    mining = true;
 
-    miningSeconds = 0;
+    try {
 
-    document.querySelector(".status").innerText =
-        "MINING";
 
-    document.querySelector(".start").innerText =
-        "⛏️ MINING ACTIVE";
+        showLoading();
 
-    miningInterval = setInterval(function(){
 
-        miningSeconds++;
+        const response =
+            await fetch(
+                "https://mine-rush-bot.onrender.com/api/me",
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "X-Telegram-Init-Data":
+                            tg.initData
+
+                    }
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "MINE RUSH USER:",
+            data
+        );
+
+
+        if (!response.ok || !data.ok) {
+
+            throw new Error(
+                data.error ||
+                "Authentication failed"
+            );
+
+        }
+
 
         /*
-           1 minute = miningSpeed NOTE
+           Save user
         */
 
-        note += miningSpeed / 60;
+        currentUser =
+            data.user;
+
+
+        /*
+           Load balances
+        */
+
+        note =
+            Number(
+                data.user.note || 0
+            );
+
+
+        sikka =
+            Number(
+                data.user.sikka || 0
+            );
+
+
+        xp =
+            Number(
+                data.user.xp || 0
+            );
+
+
+        level =
+            Number(
+                data.user.level || 1
+            );
+
+
+        /*
+           Username
+        */
+
+        let displayName =
+            data.user.first_name ||
+            data.user.username ||
+            "Player";
+
+
+        document.getElementById(
+            "username"
+        ).innerText =
+            displayName;
+
+
+        /*
+           Update screen
+        */
 
         updateBalance();
 
-        let minutes =
-            Math.floor(miningSeconds / 60);
 
-        let seconds =
-            miningSeconds % 60;
+        /*
+           Show app
+        */
 
-        document.getElementById("timer").innerText =
-            String(minutes).padStart(2,"0")
-            + ":"
-            + String(seconds).padStart(2,"0");
+        document.getElementById(
+            "loadingScreen"
+        ).style.display =
+            "none";
 
-        let progress =
-            ((miningSeconds % 60) / 60) * 100;
 
-        document.getElementById("progress").style.width =
-            progress + "%";
+        document.getElementById(
+            "errorScreen"
+        ).style.display =
+            "none";
 
-    },1000);
+
+        document.getElementById(
+            "app"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "bottomNav"
+        ).style.display =
+            "grid";
+
+
+        console.log(
+            "✅ MINE RUSH USER LOADED"
+        );
+
+
+    }
+
+    catch (error) {
+
+
+        console.error(
+            "MINE RUSH LOAD ERROR:",
+            error
+        );
+
+
+        showError(
+            error.message ||
+            "Server connection failed."
+        );
+
+    }
 
 }
 
 
-/* ==========================================
+/* =========================================
+   LOADING
+========================================== */
+
+function showLoading() {
+
+
+    document.getElementById(
+        "loadingScreen"
+    ).style.display =
+        "flex";
+
+
+    document.getElementById(
+        "errorScreen"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "app"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "bottomNav"
+    ).style.display =
+        "none";
+
+}
+
+
+/* =========================================
+   ERROR
+========================================== */
+
+function showError(message) {
+
+
+    document.getElementById(
+        "loadingScreen"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "app"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "bottomNav"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "errorText"
+    ).innerText =
+        message;
+
+
+    document.getElementById(
+        "errorScreen"
+    ).style.display =
+        "flex";
+
+}
+
+
+/* =========================================
    MODALS
 ========================================== */
 
-function openBox(type){
+function openBox(type) {
+
 
     let title = "";
+
     let content = "";
 
-    if(type === "miners"){
+
+    if (type === "miners") {
 
         title = "⛏️ MINERS";
 
         content = `
-            <p>Different miners will be available here.</p>
-            <p>Buy miners using NOTE.</p>
+            <p>Your miners will appear here.</p>
+            <p>Real miner data will be connected next.</p>
         `;
 
     }
 
-    if(type === "market"){
+
+    else if (type === "market") {
 
         title = "🏪 MARKET";
 
         content = `
-            <p>Players will be able to list their miners.</p>
-            <p>Other players can buy them.</p>
+            <p>Player marketplace.</p>
+            <p>Miner listing and buying will be added next.</p>
         `;
 
     }
 
-    if(type === "refer"){
+
+    else if (type === "refer") {
 
         title = "👥 REFER";
 
         content = `
-            <p>Invite friends and earn rewards.</p>
             <p>Your referral system will appear here.</p>
         `;
 
     }
 
-    if(type === "ads"){
 
-        title = "📺 WATCH ADS";
+    else if (type === "ads") {
+
+        title = "📺 ADS";
 
         content = `
             <p>Watch ads and earn SIKKA.</p>
@@ -786,64 +1703,91 @@ function openBox(type){
 
     }
 
-    if(type === "withdraw"){
+
+    else if (type === "withdraw") {
 
         title = "💸 WITHDRAW";
 
         content = `
-            <p>Withdrawal system will appear here.</p>
-            <p>Minimum withdrawal and payment methods will be added later.</p>
+            <p>Your NOTE withdrawal system will appear here.</p>
         `;
 
     }
 
-    if(type === "games"){
 
-        title = "🎮 MINI GAMES";
+    else if (type === "games") {
+
+        title = "🎮 GAMES";
 
         content = `
-            <p>Play mini-games to earn SIKKA.</p>
-            <p>Games will use SIKKA for rewards and spending.</p>
+            <p>Mini-games will be added here.</p>
+            <p>Rewards will use SIKKA.</p>
         `;
 
     }
 
-    if(type === "profile"){
+
+    else if (type === "profileBox") {
 
         title = "👤 PROFILE";
 
         content = `
-            <p>Level: 1</p>
-            <p>XP: 0</p>
+            <p>
+                Level:
+                <b>${level}</b>
+            </p>
+
+            <p>
+                XP:
+                <b>${xp}</b>
+            </p>
         `;
 
     }
 
-    document.getElementById("modalTitle").innerText =
+
+    document.getElementById(
+        "modalTitle"
+    ).innerText =
         title;
 
-    document.getElementById("modalContent").innerHTML =
+
+    document.getElementById(
+        "modalContent"
+    ).innerHTML =
         content;
 
-    document.getElementById("modal").style.display =
+
+    document.getElementById(
+        "modal"
+    ).style.display =
         "flex";
+
 }
 
 
-function closeBox(){
-
-    document.getElementById("modal").style.display =
-        "none";
-}
-
-
-/* ==========================================
-   INITIAL SCREEN
+/* =========================================
+   CLOSE MODAL
 ========================================== */
 
-updateBalance();
+function closeBox() {
+
+    document.getElementById(
+        "modal"
+    ).style.display =
+        "none";
+
+}
+
+
+/* =========================================
+   START
+========================================== */
+
+loadUser();
 
 </script>
 
 </body>
+
 </html>
