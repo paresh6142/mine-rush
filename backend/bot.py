@@ -357,13 +357,25 @@ def update_user(user_id, values):
 
 @app.get("/")
 def home():
+    base_dir = os.path.dirname(os.path.dirname(__file__))
 
-    return send_from_directory(
-        os.path.dirname(
-            os.path.dirname(__file__)
-        ),
-        "index.html"
-    )
+    possible_paths = [
+        os.path.join(base_dir, "index.html"),
+        os.path.join(base_dir, "frontend", "index.html"),
+        os.path.join(base_dir, "public", "index.html"),
+    ]
+
+    for file_path in possible_paths:
+        if os.path.isfile(file_path):
+            return send_from_directory(
+                os.path.dirname(file_path),
+                os.path.basename(file_path)
+            )
+
+    return jsonify({
+        "ok": False,
+        "error": "index.html not found on server"
+    }), 404
 
 
 # =========================================================
