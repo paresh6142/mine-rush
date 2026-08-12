@@ -1,7 +1,8 @@
 import os
-import time
-import secrets
 import string
+import secrets
+import urllib.parse
+import json
 from datetime import datetime, timezone, timedelta
 
 import requests
@@ -20,6 +21,7 @@ BOT_TOKEN = (
 )
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
+
 SUPABASE_SERVICE_ROLE_KEY = (
     os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     or os.getenv("SUPABASE_SERVICE_KEY")
@@ -39,13 +41,11 @@ WEBHOOK_URL = os.getenv(
 
 MINING_HOURS = 4
 
-# Default reward for one complete 4-hour mining session.
-# You can later change this from Render Environment Variables.
-MINING_BASE_REWARD = int(
+MINING_REWARD = int(
     os.getenv("MINING_BASE_REWARD", "100")
 )
 
-DAILY_BONUS_SIKKA = int(
+DAILY_BONUS = int(
     os.getenv("DAILY_BONUS_SIKKA", "100")
 )
 
@@ -62,10 +62,12 @@ app = Flask(__name__)
 # =========================================================
 
 if not SUPABASE_URL:
-    raise RuntimeError("SUPABASE_URL is missing")
+    raise RuntimeError("SUPABASE_URL missing")
 
 if not SUPABASE_SERVICE_ROLE_KEY:
-    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is missing")
+    raise RuntimeError(
+        "SUPABASE_SERVICE_ROLE_KEY missing"
+    )
 
 supabase: Client = create_client(
     SUPABASE_URL,
@@ -74,42 +76,35 @@ supabase: Client = create_client(
 
 
 # =========================================================
-# TELEGRAM API
+# TELEGRAM
 # =========================================================
 
 TELEGRAM_API = (
     f"https://api.telegram.org/bot{BOT_TOKEN}"
-    if BOT_TOKEN
-    else None
+    if BOT_TOKEN else None
 )
 
 
 def telegram(method, data=None):
 
     if not TELEGRAM_API:
-        print("BOT TOKEN IS MISSING")
+        print("BOT TOKEN MISSING")
         return None
 
     try:
 
-        response = requests.post(
+        r = requests.post(
             f"{TELEGRAM_API}/{method}",
             json=data or {},
-            timeout=15
-        )
-
-        print(
-            "TELEGRAM",
-            method,
-            response.status_code
+            timeout=20
         )
 
         try:
-            return response.json()
+            return r.json()
         except Exception:
             return {
                 "ok": False,
-                "raw": response.text
+                "raw": r.text
             }
 
     except Exception as e:
@@ -122,7 +117,11 @@ def telegram(method, data=None):
         return None
 
 
-def send_message(chat_id, text, keyboard=None):
+def send_message(
+    chat_id,
+    text,
+    keyboard=None
+):
 
     payload = {
         "chat_id": chat_id,
@@ -140,60 +139,27 @@ def send_message(chat_id, text, keyboard=None):
 
 
 # =========================================================
-# KEYBOARDS
-# =========================================================
-
-def main_keyboard():
-
-    return {
-        "inline_keyboard": [
-            [
-                {
-                    "text": "🎮 PLAY MINE RUSH",
-                    "web_app": {
-                        "url": APP_URL
-                    }
-                }
-            ],
-            [
-                {
-                    "text": "📊 My Account",
-                    "callback_data": "account"
-                },
-                {
-                    "text": "🎁 Bonus",
-                    "callback_data": "bonus"
-                }
-            ],
-            [
-                {
-                    "text": "👥 Referral",
-                    "callback_data": "referral"
-                },
-                {
-                    "text": "🏆 Leaderboard",
-                    "callback_data": "leaderboard"
-                }
-            ]
-        ]
-    }
-
-
-# =========================================================
 # HELPERS
 # =========================================================
 
 def now_utc():
-    return datetime.now(timezone.utc)
+
+    return datetime.now(
+        timezone.utc
+    )
 
 
 def iso(dt):
+
     return dt.isoformat()
 
 
 def generate_referral_code():
 
-    chars = string.ascii_uppercase + string.digits
+    chars = (
+        string.ascii_uppercase
+        + string.digits
+    )
 
     return "".join(
         secrets.choice(chars)
@@ -201,7 +167,80 @@ def generate_referral_code():
     )
 
 
-def get_user_by_telegram(telegram_id):
+# =========================================================
+# REFERRAL CODE
+# IMPORTANT:
+# ALSO FIXES OLD USERS WHO HAVE NULL CODE
+# =========================================================
+
+def ensure_referral_code(user):
+
+    current = user.get(
+        "referral_code"
+    )
+
+    if current:
+        return user
+
+    for _ in range(20):
+
+        code = generate_referral_code()
+
+        try:
+
+            check = (
+                supabase
+                .table("users")
+                .select("id")
+                .eq(
+                    "referral_code",
+                    code
+                )
+                .limit(1)
+                .execute()
+            )
+
+            if check.data:
+                continue
+
+
+            result = (
+                supabase
+                .table("users")
+                .update({
+                    "referral_code":
+                        code
+                })
+                .eq(
+                    "id",
+                    user["id"]
+                )
+                .execute()
+            )
+
+            if result.data:
+
+                return result.data[0]
+
+        except Exception as e:
+
+            print(
+                "REFERRAL CODE ERROR:",
+                repr(e)
+            )
+
+            break
+
+    return user
+
+
+# =========================================================
+# USER
+# =========================================================
+
+def get_user_by_telegram(
+    telegram_id
+):
 
     try:
 
@@ -209,15 +248,25 @@ def get_user_by_telegram(telegram_id):
             supabase
             .table("users")
             .select("*")
-            .eq("telegram_id", int(telegram_id))
+            .eq(
+                "telegram_id",
+                int(telegram_id)
+            )
             .limit(1)
             .execute()
         )
 
-        if result.data:
-            return result.data[0]
+        if not result.data:
+            return None
 
-        return None
+        user = result.data[0]
+
+        # FIX OLD USERS
+        user = ensure_referral_code(
+            user
+        )
+
+        return user
 
     except Exception as e:
 
@@ -237,15 +286,20 @@ def get_user_by_id(user_id):
             supabase
             .table("users")
             .select("*")
-            .eq("id", user_id)
+            .eq(
+                "id",
+                user_id
+            )
             .limit(1)
             .execute()
         )
 
-        if result.data:
-            return result.data[0]
+        if not result.data:
+            return None
 
-        return None
+        return ensure_referral_code(
+            result.data[0]
+        )
 
     except Exception as e:
 
@@ -257,98 +311,8 @@ def get_user_by_id(user_id):
         return None
 
 
-def get_user_from_init_data():
-
-    """
-    The frontend sends Telegram WebApp initData.
-
-    For now we extract user information from the
-    WebApp payload. Telegram launch happens inside
-    the trusted Telegram Mini App.
-    """
-
-    import urllib.parse
-    import json
-
-    init_data = (
-        request.form.get("init_data")
-        or request.headers.get("X-Telegram-Init-Data")
-        or ""
-    )
-
-    if not init_data:
-        return None
-
-    try:
-
-        params = urllib.parse.parse_qs(
-            init_data
-        )
-
-        user_values = params.get("user")
-
-        if not user_values:
-            return None
-
-        telegram_user = json.loads(
-            user_values[0]
-        )
-
-        telegram_id = telegram_user.get("id")
-
-        if not telegram_id:
-            return None
-
-        return get_user_by_telegram(
-            telegram_id
-        )
-
-    except Exception as e:
-
-        print(
-            "INIT DATA ERROR:",
-            repr(e)
-        )
-
-        return None
-
-
-def create_transaction(
-    user_id,
-    currency,
-    amount,
-    tx_type,
-    description
-):
-
-    try:
-
-        supabase.table(
-            "transactions"
-        ).insert({
-
-            "user_id": user_id,
-            "currency": currency,
-            "amount": amount,
-            "type": tx_type,
-            "description": description
-
-        }).execute()
-
-        return True
-
-    except Exception as e:
-
-        print(
-            "TRANSACTION ERROR:",
-            repr(e)
-        )
-
-        return False
-
-
 # =========================================================
-# USER CREATION
+# CREATE USER
 # =========================================================
 
 def create_user(
@@ -360,28 +324,35 @@ def create_user(
         telegram_user["id"]
     )
 
-    username = telegram_user.get(
-        "username"
+    username = (
+        telegram_user.get(
+            "username"
+        )
+        or telegram_user.get(
+            "first_name"
+        )
+        or "Gamer"
     )
 
-    first_name = telegram_user.get(
-        "first_name",
-        "Gamer"
-    )
 
+    # Existing user
     existing = get_user_by_telegram(
         telegram_id
     )
 
     if existing:
+
         return existing
 
 
-    new_referral_code = None
+    # New referral code
+    my_code = None
 
-    for _ in range(10):
+    for _ in range(20):
 
-        candidate = generate_referral_code()
+        candidate = (
+            generate_referral_code()
+        )
 
         try:
 
@@ -399,56 +370,65 @@ def create_user(
 
             if not check.data:
 
-                new_referral_code = candidate
+                my_code = candidate
                 break
 
         except Exception:
             pass
 
 
-    if not new_referral_code:
-        new_referral_code = generate_referral_code()
+    if not my_code:
+
+        my_code = generate_referral_code()
 
 
     insert_data = {
 
-        "telegram_id": telegram_id,
+        "telegram_id":
+            telegram_id,
 
-        "username": (
-            username
-            or first_name
-        ),
+        "username":
+            username,
 
-        "note_balance": 0,
+        "note_balance":
+            0,
 
-        "sikka_balance": 0,
+        "sikka_balance":
+            0,
 
-        "xp": 0,
+        "xp":
+            0,
 
-        "level": 1,
+        "level":
+            1,
 
-        "energy": 100,
+        "energy":
+            100,
 
-        "boost_percent": 0,
+        "boost_percent":
+            0,
 
         "mining_rate":
-            MINING_BASE_REWARD,
+            MINING_REWARD,
 
-        "pending_reward": 0,
+        "pending_reward":
+            0,
 
         "referral_code":
-            new_referral_code,
+            my_code,
 
-        "referral_count": 0,
+        "referral_count":
+            0,
 
-        "total_mined": 0
+        "total_mined":
+            0
 
     }
 
 
-    # -----------------------------------------------------
-    # Referral
-    # -----------------------------------------------------
+    # =====================================================
+    # REFERRER
+    # =====================================================
 
     referrer = None
 
@@ -456,7 +436,7 @@ def create_user(
 
         try:
 
-            ref_result = (
+            ref = (
                 supabase
                 .table("users")
                 .select("*")
@@ -468,11 +448,10 @@ def create_user(
                 .execute()
             )
 
-            if ref_result.data:
+            if ref.data:
 
-                referrer = ref_result.data[0]
+                referrer = ref.data[0]
 
-                # Prevent self-referral
                 if int(
                     referrer["telegram_id"]
                 ) == telegram_id:
@@ -482,21 +461,21 @@ def create_user(
         except Exception as e:
 
             print(
-                "REFERRAL LOOKUP ERROR:",
+                "REFERRER ERROR:",
                 repr(e)
             )
 
 
     if referrer:
 
-        insert_data["referred_by"] = (
-            referrer["id"]
-        )
+        insert_data[
+            "referred_by"
+        ] = referrer["id"]
 
 
-    # -----------------------------------------------------
-    # Create user
-    # -----------------------------------------------------
+    # =====================================================
+    # INSERT
+    # =====================================================
 
     try:
 
@@ -522,35 +501,38 @@ def create_user(
         return None
 
 
-    # -----------------------------------------------------
-    # Referral reward
-    # -----------------------------------------------------
+    # =====================================================
+    # REFERRAL REWARD
+    # =====================================================
 
     if referrer:
 
         try:
 
-            referrer_sikka = float(
+            old_sikka = float(
                 referrer.get(
                     "sikka_balance",
                     0
                 ) or 0
             )
 
+            old_count = int(
+                referrer.get(
+                    "referral_count",
+                    0
+                ) or 0
+            )
+
+
             supabase.table(
                 "users"
             ).update({
 
                 "sikka_balance":
-                    referrer_sikka + 50,
+                    old_sikka + 50,
 
                 "referral_count":
-                    int(
-                        referrer.get(
-                            "referral_count",
-                            0
-                        ) or 0
-                    ) + 1
+                    old_count + 1
 
             }).eq(
                 "id",
@@ -584,99 +566,124 @@ def create_user(
 
 
 # =========================================================
+# TRANSACTION
+# =========================================================
+
+def create_transaction(
+    user_id,
+    currency,
+    amount,
+    tx_type,
+    description
+):
+
+    try:
+
+        supabase.table(
+            "transactions"
+        ).insert({
+
+            "user_id":
+                user_id,
+
+            "currency":
+                currency,
+
+            "amount":
+                amount,
+
+            "type":
+                tx_type,
+
+            "description":
+                description
+
+        }).execute()
+
+        return True
+
+    except Exception as e:
+
+        print(
+            "TRANSACTION ERROR:",
+            repr(e)
+        )
+
+        return False
+
+
+# =========================================================
+# TELEGRAM KEYBOARD
+# =========================================================
+
+def main_keyboard():
+
+    return {
+
+        "inline_keyboard": [
+
+            [
+                {
+                    "text":
+                        "🎮 PLAY MINE RUSH",
+
+                    "web_app": {
+                        "url": APP_URL
+                    }
+                }
+            ],
+
+            [
+                {
+                    "text":
+                        "📊 My Account",
+
+                    "callback_data":
+                        "account"
+                },
+
+                {
+                    "text":
+                        "🎁 Bonus",
+
+                    "callback_data":
+                        "bonus"
+                }
+            ],
+
+            [
+                {
+                    "text":
+                        "👥 Referral",
+
+                    "callback_data":
+                        "referral"
+                },
+
+                {
+                    "text":
+                        "🏆 Leaderboard",
+
+                    "callback_data":
+                        "leaderboard"
+                }
+            ]
+
+        ]
+
+    }
+
+
+# =========================================================
 # USER SUMMARY
 # =========================================================
 
 def user_summary(user):
 
-    note = float(
-        user.get(
-            "note_balance",
-            0
-        ) or 0
-    )
-
-    sikka = float(
-        user.get(
-            "sikka_balance",
-            0
-        ) or 0
-    )
-
-    xp = int(
-        user.get(
-            "xp",
-            0
-        ) or 0
-    )
-
-    level = int(
-        user.get(
-            "level",
-            1
-        ) or 1
-    )
-
-    energy = int(
-        user.get(
-            "energy",
-            100
-        ) or 0
-    )
-
-    boost = float(
-        user.get(
-            "boost_percent",
-            0
-        ) or 0
-    )
-
-    mining_rate = float(
-        user.get(
-            "mining_rate",
-            MINING_BASE_REWARD
-        ) or MINING_BASE_REWARD
-    )
-
-    started = user.get(
-        "mining_started_at"
-    )
-
-    ends = user.get(
-        "mining_ends_at"
-    )
-
-    mining_active = False
-    mining_complete = False
-
-    if started and ends:
-
-        try:
-
-            end_dt = datetime.fromisoformat(
-                ends.replace(
-                    "Z",
-                    "+00:00"
-                )
-            )
-
-            current = now_utc()
-
-            if current < end_dt:
-
-                mining_active = True
-
-            else:
-
-                mining_complete = True
-
-        except Exception:
-            pass
-
-
     return {
 
-        "id": user.get("id"),
+        "id":
+            user.get("id"),
 
         "telegram_id":
             user.get("telegram_id"),
@@ -685,31 +692,71 @@ def user_summary(user):
             user.get("username"),
 
         "note":
-            note,
+            float(
+                user.get(
+                    "note_balance",
+                    0
+                ) or 0
+            ),
 
         "sikka":
-            sikka,
-
-        "level":
-            level,
+            float(
+                user.get(
+                    "sikka_balance",
+                    0
+                ) or 0
+            ),
 
         "xp":
-            xp,
+            int(
+                user.get(
+                    "xp",
+                    0
+                ) or 0
+            ),
+
+        "level":
+            int(
+                user.get(
+                    "level",
+                    1
+                ) or 1
+            ),
 
         "energy":
-            energy,
+            int(
+                user.get(
+                    "energy",
+                    100
+                ) or 100
+            ),
 
         "boost":
-            boost,
+            float(
+                user.get(
+                    "boost_percent",
+                    0
+                ) or 0
+            ),
 
         "mining_rate":
-            mining_rate,
+            float(
+                user.get(
+                    "mining_rate",
+                    MINING_REWARD
+                )
+                or MINING_REWARD
+            ),
 
         "mining_started_at":
-            started,
+            user.get(
+                "mining_started_at"
+            ),
 
         "mining_ends_at":
-            ends,
+            user.get(
+                "mining_ends_at"
+            ),
 
         "pending_reward":
             float(
@@ -718,12 +765,6 @@ def user_summary(user):
                     0
                 ) or 0
             ),
-
-        "mining_active":
-            mining_active,
-
-        "mining_complete":
-            mining_complete,
 
         "referral_code":
             user.get(
@@ -742,23 +783,20 @@ def user_summary(user):
 
 
 # =========================================================
-# TELEGRAM /start
+# TELEGRAM START
 # =========================================================
 
 def handle_start(message):
 
-    chat = message.get(
-        "chat",
-        {}
+    chat_id = (
+        message
+        .get("chat", {})
+        .get("id")
     )
 
-    telegram_user = message.get(
-        "from",
-        {}
-    )
-
-    chat_id = chat.get(
-        "id"
+    telegram_user = (
+        message
+        .get("from", {})
     )
 
     if not chat_id:
@@ -778,7 +816,9 @@ def handle_start(message):
 
     if len(parts) > 1:
 
-        referral_code = parts[1].strip()
+        referral_code = (
+            parts[1].strip()
+        )
 
 
     user = create_user(
@@ -786,36 +826,29 @@ def handle_start(message):
         referral_code
     )
 
-
     if not user:
 
         send_message(
             chat_id,
-            "⚠️ MINE RUSH server problem.\nPlease try again."
+            "⚠️ Server error. Please try again."
         )
 
         return
 
 
-    summary = user_summary(
-        user
-    )
+    s = user_summary(user)
 
 
-    message_text = (
+    text = (
         "🔥 <b>MINE RUSH</b> 🔥\n\n"
 
-        f"🪙 NOTE: "
-        f"<b>{summary['note']:.0f}</b>\n"
+        f"⚫ NOTE: <b>{s['note']:.0f}</b>\n"
 
-        f"🪙 SIKKA: "
-        f"<b>{summary['sikka']:.0f}</b>\n"
+        f"⚫ SIKKA: <b>{s['sikka']:.0f}</b>\n"
 
-        f"⭐ LEVEL: "
-        f"<b>{summary['level']}</b>\n"
+        f"⭐ LEVEL: <b>{s['level']}</b>\n"
 
-        f"⚡ XP: "
-        f"<b>{summary['xp']}</b>\n\n"
+        f"⚡ XP: <b>{s['xp']}</b>\n\n"
 
         f"Welcome back, "
         f"<b>{telegram_user.get('first_name', 'Gamer')}</b>! 👋\n\n"
@@ -826,7 +859,7 @@ def handle_start(message):
 
     send_message(
         chat_id,
-        message_text,
+        text,
         main_keyboard()
     )
 
@@ -843,17 +876,15 @@ def telegram_webhook():
 
     try:
 
-        update = request.get_json(
-            silent=True
-        ) or {}
-
-        print(
-            "TELEGRAM UPDATE:",
-            update
+        update = (
+            request.get_json(
+                silent=True
+            )
+            or {}
         )
 
 
-        # Message
+        # MESSAGE
         if update.get("message"):
 
             message = update[
@@ -874,7 +905,7 @@ def telegram_webhook():
                 )
 
 
-        # Callback button
+        # CALLBACK
         if update.get(
             "callback_query"
         ):
@@ -891,13 +922,13 @@ def telegram_webhook():
                 "data"
             )
 
-            telegram_user = callback.get(
+            tg_user = callback.get(
                 "from",
                 {}
             )
 
             user = get_user_by_telegram(
-                telegram_user.get("id")
+                tg_user.get("id")
             )
 
 
@@ -918,20 +949,17 @@ def telegram_webhook():
                 })
 
 
-            chat_id = callback[
-                "message"
-            ][
-                "chat"
-            ][
-                "id"
-            ]
+            chat_id = (
+                callback
+                .get("message", {})
+                .get("chat", {})
+                .get("id")
+            )
 
 
             if data == "account":
 
-                s = user_summary(
-                    user
-                )
+                s = user_summary(user)
 
                 send_message(
 
@@ -939,17 +967,13 @@ def telegram_webhook():
 
                     "📊 <b>MY ACCOUNT</b>\n\n"
 
-                    f"🪙 NOTE: "
-                    f"{s['note']:.0f}\n"
+                    f"⚫ NOTE: {s['note']:.0f}\n"
 
-                    f"🪙 SIKKA: "
-                    f"{s['sikka']:.0f}\n"
+                    f"⚫ SIKKA: {s['sikka']:.0f}\n"
 
-                    f"⭐ LEVEL: "
-                    f"{s['level']}\n"
+                    f"⭐ LEVEL: {s['level']}\n"
 
-                    f"⚡ XP: "
-                    f"{s['xp']}\n\n"
+                    f"⚡ XP: {s['xp']}\n\n"
 
                     f"👥 Referrals: "
                     f"{s['referral_count']}"
@@ -958,7 +982,7 @@ def telegram_webhook():
 
             elif data == "bonus":
 
-                claim_daily_bonus(
+                claim_bonus(
                     user,
                     chat_id
                 )
@@ -966,23 +990,23 @@ def telegram_webhook():
 
             elif data == "referral":
 
-                s = user_summary(
-                    user
-                )
+                s = user_summary(user)
 
-                bot_info = telegram(
+                bot = telegram(
                     "getMe"
                 )
 
-                bot_username = "MINE_RUSH_BOT"
+                bot_username = (
+                    "MineRushGameBot"
+                )
 
                 if (
-                    bot_info
-                    and bot_info.get("ok")
+                    bot
+                    and bot.get("ok")
                 ):
 
                     bot_username = (
-                        bot_info["result"]
+                        bot["result"]
                         ["username"]
                     )
 
@@ -1010,7 +1034,7 @@ def telegram_webhook():
                     f"{link}\n\n"
 
                     "🎁 Earn 50 SIKKA "
-                    "for each successful referral."
+                    "for every successful referral."
                 )
 
 
@@ -1039,32 +1063,70 @@ def telegram_webhook():
 
 
 # =========================================================
+# INIT DATA
+# =========================================================
+
+def get_user_from_init_data():
+
+    init_data = (
+        request.headers.get(
+            "X-Telegram-Init-Data"
+        )
+        or request.form.get(
+            "init_data"
+        )
+        or ""
+    )
+
+
+    if not init_data:
+        return None
+
+
+    try:
+
+        params = (
+            urllib.parse
+            .parse_qs(init_data)
+        )
+
+        values = params.get(
+            "user"
+        )
+
+        if not values:
+            return None
+
+        tg_user = json.loads(
+            values[0]
+        )
+
+        telegram_id = tg_user.get(
+            "id"
+        )
+
+        if not telegram_id:
+            return None
+
+        return get_user_by_telegram(
+            telegram_id
+        )
+
+    except Exception as e:
+
+        print(
+            "INIT DATA ERROR:",
+            repr(e)
+        )
+
+        return None
+
+
+# =========================================================
 # HEALTH
 # =========================================================
 
-@app.route(
-    "/health",
-    methods=["GET"]
-)
-def health():
-
-    return jsonify({
-
-        "ok": True,
-
-        "service":
-            "MINE RUSH",
-
-        "status":
-            "running"
-
-    })
-
-
-@app.route(
-    "/",
-    methods=["GET"]
-)
+@app.route("/")
 def home():
 
     return jsonify({
@@ -1075,9 +1137,17 @@ def home():
         "status":
             "online",
 
-        "mini_app":
-            "/app"
+        "app":
+            APP_URL
 
+    })
+
+
+@app.route("/health")
+def health():
+
+    return jsonify({
+        "ok": True
     })
 
 
@@ -1085,48 +1155,49 @@ def home():
 # MINI APP
 # =========================================================
 
-@app.route(
-    "/app",
-    methods=["GET"]
-)
-def mini_app():
+@app.route("/app")
+def app_page():
 
-    # Render serves the root index.html.
-    # This route allows Telegram to open /app.
     try:
 
+        root = os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(
+                    __file__
+                )
+            )
+        )
+
+        path = os.path.join(
+            root,
+            "index.html"
+        )
+
+
         with open(
-            os.path.join(
-                os.path.dirname(
-                    os.path.dirname(
-                        os.path.abspath(
-                            __file__
-                        )
-                    )
-                ),
-                "index.html"
-            ),
+            path,
             "r",
             encoding="utf-8"
         ) as f:
 
             return f.read()
 
+
     except Exception as e:
 
         print(
-            "APP FILE ERROR:",
+            "INDEX ERROR:",
             repr(e)
         )
 
         return (
             "<h1>MINE RUSH</h1>"
-            "<p>Mini App file not found.</p>"
+            "<p>index.html not found</p>"
         ), 404
 
 
 # =========================================================
-# API: ME
+# API ME
 # =========================================================
 
 @app.route(
@@ -1135,77 +1206,52 @@ def mini_app():
 )
 def api_me():
 
-    try:
+    user = get_user_from_init_data()
 
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Telegram user not found"
-
-            }), 401
-
-
-        # Auto-complete mining state
-        user = settle_completed_mining(
-            user
-        )
-
-
-        return jsonify({
-
-            "ok": True,
-
-            "user":
-                user_summary(user)
-
-        })
-
-
-    except Exception as e:
-
-        print(
-            "API ME ERROR:",
-            repr(e)
-        )
+    if not user:
 
         return jsonify({
 
             "ok": False,
 
             "error":
-                "Server error"
+                "Telegram user not found"
 
-        }), 500
+        }), 401
 
 
-# =========================================================
-# MINING STATE
-# =========================================================
-
-def settle_completed_mining(user):
-
-    started = user.get(
-        "mining_started_at"
+    user = settle_mining(
+        user
     )
+
+
+    return jsonify({
+
+        "ok": True,
+
+        "user":
+            user_summary(user)
+
+    })
+
+
+# =========================================================
+# MINING SETTLEMENT
+# =========================================================
+
+def settle_mining(user):
 
     ends = user.get(
         "mining_ends_at"
     )
 
-    if not started or not ends:
-
+    if not ends:
         return user
 
 
     try:
 
-        end_dt = datetime.fromisoformat(
+        end = datetime.fromisoformat(
             ends.replace(
                 "Z",
                 "+00:00"
@@ -1217,12 +1263,10 @@ def settle_completed_mining(user):
         return user
 
 
-    if now_utc() < end_dt:
-
+    if now_utc() < end:
         return user
 
 
-    # Already claimed?
     pending = float(
         user.get(
             "pending_reward",
@@ -1230,17 +1274,18 @@ def settle_completed_mining(user):
         ) or 0
     )
 
-    if pending > 0:
 
+    if pending > 0:
         return user
 
 
     rate = float(
         user.get(
             "mining_rate",
-            MINING_BASE_REWARD
-        ) or MINING_BASE_REWARD
+            MINING_REWARD
+        ) or MINING_REWARD
     )
+
 
     boost = float(
         user.get(
@@ -1249,6 +1294,7 @@ def settle_completed_mining(user):
         ) or 0
     )
 
+
     reward = rate * (
         1 + boost / 100
     )
@@ -1256,7 +1302,7 @@ def settle_completed_mining(user):
 
     try:
 
-        updated = (
+        result = (
             supabase
             .table("users")
             .update({
@@ -1273,15 +1319,14 @@ def settle_completed_mining(user):
         )
 
 
-        if updated.data:
-
-            return updated.data[0]
+        if result.data:
+            return result.data[0]
 
 
     except Exception as e:
 
         print(
-            "SETTLE ERROR:",
+            "SETTLE MINING ERROR:",
             repr(e)
         )
 
@@ -1297,439 +1342,317 @@ def settle_completed_mining(user):
     "/api/mining/start",
     methods=["POST"]
 )
-def api_start_mining():
+def start_mining():
 
-    try:
+    user = get_user_from_init_data()
 
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-                "ok": False,
-                "error":
-                    "Unauthorized"
-            }), 401
-
-
-        user = settle_completed_mining(
-            user
-        )
-
-
-        # Existing active mining
-        started = user.get(
-            "mining_started_at"
-        )
-
-        ends = user.get(
-            "mining_ends_at"
-        )
-
-
-        if started and ends:
-
-            try:
-
-                end_dt = datetime.fromisoformat(
-                    ends.replace(
-                        "Z",
-                        "+00:00"
-                    )
-                )
-
-                if now_utc() < end_dt:
-
-                    return jsonify({
-
-                        "ok": False,
-
-                        "error":
-                            "Mining already active",
-
-                        "user":
-                            user_summary(user)
-
-                    }), 400
-
-            except Exception:
-                pass
-
-
-        # Pending reward must be claimed first
-        pending = float(
-            user.get(
-                "pending_reward",
-                0
-            ) or 0
-        )
-
-        if pending > 0:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Claim your previous reward first"
-
-            }), 400
-
-
-        start = now_utc()
-
-        end = (
-            start
-            + timedelta(
-                hours=MINING_HOURS
-            )
-        )
-
-
-        result = (
-            supabase
-            .table("users")
-            .update({
-
-                "mining_started_at":
-                    iso(start),
-
-                "mining_ends_at":
-                    iso(end),
-
-                "pending_reward":
-                    0
-
-            })
-            .eq(
-                "id",
-                user["id"]
-            )
-            .execute()
-        )
-
-
-        if not result.data:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Unable to start mining"
-
-            }), 500
-
-
-        updated_user = result.data[0]
-
+    if not user:
 
         return jsonify({
-
-            "ok": True,
-
-            "message":
-                "Mining started",
-
-            "user":
-                user_summary(
-                    updated_user
-                )
-
-        })
+            "ok": False,
+            "error": "Unauthorized"
+        }), 401
 
 
-    except Exception as e:
+    user = settle_mining(user)
 
-        print(
-            "START MINING ERROR:",
-            repr(e)
-        )
+
+    if user.get(
+        "pending_reward",
+        0
+    ):
 
         return jsonify({
 
             "ok": False,
 
             "error":
-                "Server error"
+                "Claim previous reward first"
 
-        }), 500
-
-
-# =========================================================
-# CLAIM MINING
-# =========================================================
-
-@app.route(
-    "/api/mining/claim",
-    methods=["POST"]
-)
-def api_claim_mining():
-
-    try:
-
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Unauthorized"
-
-            }), 401
+        }), 400
 
 
-        user = settle_completed_mining(
-            user
-        )
+    ends = user.get(
+        "mining_ends_at"
+    )
 
 
-        ends = user.get(
-            "mining_ends_at"
-        )
-
-
-        if not ends:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "No mining session"
-
-            }), 400
-
+    if ends:
 
         try:
 
-            end_dt = datetime.fromisoformat(
+            end = datetime.fromisoformat(
                 ends.replace(
                     "Z",
                     "+00:00"
                 )
             )
 
+            if now_utc() < end:
+
+                return jsonify({
+
+                    "ok": False,
+
+                    "error":
+                        "Mining already active",
+
+                    "user":
+                        user_summary(user)
+
+                }), 400
+
         except Exception:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Invalid mining timer"
-
-            }), 400
+            pass
 
 
-        if now_utc() < end_dt:
+    start = now_utc()
 
-            remaining = int(
-                (
-                    end_dt
-                    - now_utc()
-                ).total_seconds()
-            )
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Mining is not complete",
-
-                "remaining":
-                    remaining
-
-            }), 400
+    end = (
+        start
+        + timedelta(
+            hours=MINING_HOURS
+        )
+    )
 
 
-        reward = float(
-            user.get(
-                "pending_reward",
+    result = (
+        supabase
+        .table("users")
+        .update({
+
+            "mining_started_at":
+                iso(start),
+
+            "mining_ends_at":
+                iso(end),
+
+            "pending_reward":
                 0
-            ) or 0
-        )
-
-
-        if reward <= 0:
-
-            # Safety calculation
-            rate = float(
-                user.get(
-                    "mining_rate",
-                    MINING_BASE_REWARD
-                ) or MINING_BASE_REWARD
-            )
-
-            boost = float(
-                user.get(
-                    "boost_percent",
-                    0
-                ) or 0
-            )
-
-            reward = rate * (
-                1 + boost / 100
-            )
-
-
-        old_note = float(
-            user.get(
-                "note_balance",
-                0
-            ) or 0
-        )
-
-        old_total = float(
-            user.get(
-                "total_mined",
-                0
-            ) or 0
-        )
-
-        new_note = (
-            old_note
-            + reward
-        )
-
-        new_total = (
-            old_total
-            + reward
-        )
-
-
-        # XP
-        old_xp = int(
-            user.get(
-                "xp",
-                0
-            ) or 0
-        )
-
-        old_level = int(
-            user.get(
-                "level",
-                1
-            ) or 1
-        )
-
-        new_xp = (
-            old_xp
-            + int(reward)
-        )
-
-        new_level = (
-            new_xp // 1000
-        ) + 1
-
-
-        result = (
-            supabase
-            .table("users")
-            .update({
-
-                "note_balance":
-                    new_note,
-
-                "total_mined":
-                    new_total,
-
-                "xp":
-                    new_xp,
-
-                "level":
-                    new_level,
-
-                "pending_reward":
-                    0,
-
-                "mining_started_at":
-                    None,
-
-                "mining_ends_at":
-                    None
-
-            })
-            .eq(
-                "id",
-                user["id"]
-            )
-            .execute()
-        )
-
-
-        if not result.data:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Could not claim reward"
-
-            }), 500
-
-
-        create_transaction(
-
-            user["id"],
-
-            "NOTE",
-
-            reward,
-
-            "mining",
-
-            "4-hour mining reward"
-
-        )
-
-
-        updated = result.data[0]
-
-
-        return jsonify({
-
-            "ok": True,
-
-            "reward":
-                reward,
-
-            "level":
-                new_level,
-
-            "user":
-                user_summary(updated)
 
         })
-
-
-    except Exception as e:
-
-        print(
-            "CLAIM ERROR:",
-            repr(e)
+        .eq(
+            "id",
+            user["id"]
         )
+        .execute()
+    )
+
+
+    if not result.data:
 
         return jsonify({
 
             "ok": False,
 
             "error":
-                "Server error"
+                "Could not start mining"
 
         }), 500
 
 
+    return jsonify({
+
+        "ok": True,
+
+        "user":
+            user_summary(
+                result.data[0]
+            )
+
+    })
+
+
 # =========================================================
-# DAILY BONUS
+# CLAIM
 # =========================================================
 
-def claim_daily_bonus(
+@app.route(
+    "/api/mining/claim",
+    methods=["POST"]
+)
+def claim_mining():
+
+    user = get_user_from_init_data()
+
+    if not user:
+
+        return jsonify({
+            "ok": False
+        }), 401
+
+
+    user = settle_mining(
+        user
+    )
+
+
+    ends = user.get(
+        "mining_ends_at"
+    )
+
+    if not ends:
+
+        return jsonify({
+
+            "ok": False,
+
+            "error":
+                "No mining session"
+
+        }), 400
+
+
+    end = datetime.fromisoformat(
+        ends.replace(
+            "Z",
+            "+00:00"
+        )
+    )
+
+
+    if now_utc() < end:
+
+        return jsonify({
+
+            "ok": False,
+
+            "error":
+                "Mining not completed"
+
+        }), 400
+
+
+    reward = float(
+        user.get(
+            "pending_reward",
+            0
+        ) or 0
+    )
+
+
+    if reward <= 0:
+
+        reward = float(
+            user.get(
+                "mining_rate",
+                MINING_REWARD
+            )
+            or MINING_REWARD
+        )
+
+
+    old_note = float(
+        user.get(
+            "note_balance",
+            0
+        ) or 0
+    )
+
+
+    old_xp = int(
+        user.get(
+            "xp",
+            0
+        ) or 0
+    )
+
+
+    old_level = int(
+        user.get(
+            "level",
+            1
+        ) or 1
+    )
+
+
+    new_note = (
+        old_note + reward
+    )
+
+    new_xp = (
+        old_xp + int(reward)
+    )
+
+    new_level = (
+        new_xp // 1000
+    ) + 1
+
+
+    result = (
+        supabase
+        .table("users")
+        .update({
+
+            "note_balance":
+                new_note,
+
+            "xp":
+                new_xp,
+
+            "level":
+                new_level,
+
+            "pending_reward":
+                0,
+
+            "mining_started_at":
+                None,
+
+            "mining_ends_at":
+                None
+
+        })
+        .eq(
+            "id",
+            user["id"]
+        )
+        .execute()
+    )
+
+
+    if not result.data:
+
+        return jsonify({
+            "ok": False
+        }), 500
+
+
+    create_transaction(
+
+        user["id"],
+
+        "NOTE",
+
+        reward,
+
+        "mining",
+
+        "4 hour mining reward"
+
+    )
+
+
+    return jsonify({
+
+        "ok": True,
+
+        "reward":
+            reward,
+
+        "user":
+            user_summary(
+                result.data[0]
+            )
+
+    })
+
+
+# =========================================================
+# BONUS
+# =========================================================
+
+def claim_bonus(
     user,
     chat_id=None
 ):
@@ -1738,11 +1661,12 @@ def claim_daily_bonus(
         "last_bonus_at"
     )
 
+
     if last:
 
         try:
 
-            last_dt = datetime.fromisoformat(
+            dt = datetime.fromisoformat(
                 last.replace(
                     "Z",
                     "+00:00"
@@ -1750,29 +1674,23 @@ def claim_daily_bonus(
             )
 
             if (
-                now_utc()
-                - last_dt
+                now_utc() - dt
             ).total_seconds() < 86400:
 
                 if chat_id:
 
                     send_message(
-
                         chat_id,
-
-                        "🎁 <b>DAILY BONUS</b>\n\n"
-                        "You already claimed today's bonus.\n"
-                        "Come back tomorrow! ⏰"
-
+                        "🎁 Bonus already claimed.\nCome back tomorrow."
                     )
 
-                return False
+                return
 
         except Exception:
             pass
 
 
-    old_sikka = float(
+    old = float(
         user.get(
             "sikka_balance",
             0
@@ -1780,75 +1698,52 @@ def claim_daily_bonus(
     )
 
 
-    new_sikka = (
-        old_sikka
-        + DAILY_BONUS_SIKKA
+    result = (
+        supabase
+        .table("users")
+        .update({
+
+            "sikka_balance":
+                old + DAILY_BONUS,
+
+            "last_bonus_at":
+                iso(now_utc())
+
+        })
+        .eq(
+            "id",
+            user["id"]
+        )
+        .execute()
     )
 
 
-    try:
+    create_transaction(
 
-        result = (
-            supabase
-            .table("users")
-            .update({
+        user["id"],
 
-                "sikka_balance":
-                    new_sikka,
+        "SIKKA",
 
-                "last_bonus_at":
-                    iso(now_utc())
+        DAILY_BONUS,
 
-            })
-            .eq(
-                "id",
-                user["id"]
-            )
-            .execute()
-        )
+        "daily_bonus",
+
+        "Daily bonus"
+
+    )
 
 
-        create_transaction(
+    if chat_id:
 
-            user["id"],
+        send_message(
 
-            "SIKKA",
+            chat_id,
 
-            DAILY_BONUS_SIKKA,
-
-            "daily_bonus",
-
-            "Daily bonus"
+            "🎁 <b>DAILY BONUS</b>\n\n"
+            "Congratulations! 🎉\n\n"
+            f"+{DAILY_BONUS} SIKKA 🪙"
 
         )
-
-
-        if chat_id:
-
-            send_message(
-
-                chat_id,
-
-                "🎁 <b>DAILY BONUS</b>\n\n"
-                f"Congratulations! 🎉\n\n"
-                f"+{DAILY_BONUS_SIKKA} SIKKA 🪙"
-
-            )
-
-
-        return bool(
-            result.data
-        )
-
-
-    except Exception as e:
-
-        print(
-            "BONUS ERROR:",
-            repr(e)
-        )
-
-        return False
 
 
 @app.route(
@@ -1857,232 +1752,185 @@ def claim_daily_bonus(
 )
 def api_bonus():
 
-    try:
+    user = get_user_from_init_data()
 
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Unauthorized"
-
-            }), 401
-
-
-        old_sikka = float(
-            user.get(
-                "sikka_balance",
-                0
-            ) or 0
-        )
-
-
-        last = user.get(
-            "last_bonus_at"
-        )
-
-        if last:
-
-            try:
-
-                last_dt = datetime.fromisoformat(
-                    last.replace(
-                        "Z",
-                        "+00:00"
-                    )
-                )
-
-                seconds = (
-                    now_utc()
-                    - last_dt
-                ).total_seconds()
-
-                if seconds < 86400:
-
-                    return jsonify({
-
-                        "ok": False,
-
-                        "error":
-                            "Bonus already claimed",
-
-                        "next_in":
-                            int(
-                                86400
-                                - seconds
-                            )
-
-                    }), 400
-
-            except Exception:
-                pass
-
-
-        new_sikka = (
-            old_sikka
-            + DAILY_BONUS_SIKKA
-        )
-
-
-        result = (
-            supabase
-            .table("users")
-            .update({
-
-                "sikka_balance":
-                    new_sikka,
-
-                "last_bonus_at":
-                    iso(now_utc())
-
-            })
-            .eq(
-                "id",
-                user["id"]
-            )
-            .execute()
-        )
-
-
-        create_transaction(
-
-            user["id"],
-
-            "SIKKA",
-
-            DAILY_BONUS_SIKKA,
-
-            "daily_bonus",
-
-            "Daily bonus"
-
-        )
-
+    if not user:
 
         return jsonify({
+            "ok": False
+        }), 401
 
-            "ok": True,
 
-            "reward":
-                DAILY_BONUS_SIKKA,
+    last = user.get(
+        "last_bonus_at"
+    )
 
-            "user":
-                user_summary(
-                    result.data[0]
+
+    if last:
+
+        try:
+
+            dt = datetime.fromisoformat(
+                last.replace(
+                    "Z",
+                    "+00:00"
                 )
+            )
+
+            seconds = (
+                now_utc() - dt
+            ).total_seconds()
+
+            if seconds < 86400:
+
+                return jsonify({
+
+                    "ok": False,
+
+                    "error":
+                        "Already claimed",
+
+                    "next":
+                        int(
+                            86400 - seconds
+                        )
+
+                }), 400
+
+        except Exception:
+            pass
+
+
+    old = float(
+        user.get(
+            "sikka_balance",
+            0
+        ) or 0
+    )
+
+
+    result = (
+        supabase
+        .table("users")
+        .update({
+
+            "sikka_balance":
+                old + DAILY_BONUS,
+
+            "last_bonus_at":
+                iso(now_utc())
 
         })
-
-
-    except Exception as e:
-
-        print(
-            "API BONUS ERROR:",
-            repr(e)
+        .eq(
+            "id",
+            user["id"]
         )
+        .execute()
+    )
 
-        return jsonify({
 
-            "ok": False,
+    create_transaction(
 
-            "error":
-                "Server error"
+        user["id"],
+        "SIKKA",
+        DAILY_BONUS,
+        "daily_bonus",
+        "Daily bonus"
 
-        }), 500
+    )
+
+
+    return jsonify({
+
+        "ok": True,
+
+        "reward":
+            DAILY_BONUS,
+
+        "user":
+            user_summary(
+                result.data[0]
+            )
+
+    })
 
 
 # =========================================================
-# REFERRAL
+# REFERRAL API
 # =========================================================
 
 @app.route(
     "/api/referral",
     methods=["POST"]
 )
-def api_referral():
+def referral_api():
 
-    try:
+    user = get_user_from_init_data()
 
-        user = get_user_from_init_data()
+    if not user:
 
-        if not user:
-
-            return jsonify({
-
-                "ok": False
-
-            }), 401
+        return jsonify({
+            "ok": False
+        }), 401
 
 
-        bot_info = telegram(
-            "getMe"
+    user = ensure_referral_code(
+        user
+    )
+
+
+    bot = telegram(
+        "getMe"
+    )
+
+
+    username = (
+        "MineRushGameBot"
+    )
+
+
+    if (
+        bot
+        and bot.get("ok")
+    ):
+
+        username = (
+            bot["result"]
+            ["username"]
         )
 
-        bot_username = (
-            "MINE_RUSH_BOT"
-        )
 
-        if (
-            bot_info
-            and bot_info.get("ok")
-        ):
+    code = user.get(
+        "referral_code"
+    )
 
-            bot_username = (
-                bot_info["result"]
-                ["username"]
+
+    link = (
+        f"https://t.me/"
+        f"{username}"
+        f"?start={code}"
+    )
+
+
+    return jsonify({
+
+        "ok": True,
+
+        "code":
+            code,
+
+        "link":
+            link,
+
+        "count":
+            int(
+                user.get(
+                    "referral_count",
+                    0
+                ) or 0
             )
 
-
-        code = user.get(
-            "referral_code"
-        )
-
-
-        link = (
-            "https://t.me/"
-            + bot_username
-            + "?start="
-            + str(code)
-        )
-
-
-        return jsonify({
-
-            "ok": True,
-
-            "code":
-                code,
-
-            "link":
-                link,
-
-            "count":
-                int(
-                    user.get(
-                        "referral_count",
-                        0
-                    ) or 0
-                )
-
-        })
-
-
-    except Exception as e:
-
-        print(
-            "REFERRAL API ERROR:",
-            repr(e)
-        )
-
-        return jsonify({
-
-            "ok": False
-
-        }), 500
+    })
 
 
 # =========================================================
@@ -2119,71 +1967,46 @@ def get_leaderboard():
         return []
 
 
-def send_leaderboard(chat_id):
+def send_leaderboard(
+    chat_id
+):
 
     rows = get_leaderboard()
-
-    if not rows:
-
-        send_message(
-            chat_id,
-            "🏆 Leaderboard is empty."
-        )
-
-        return
-
 
     text = (
         "🏆 <b>MINE RUSH LEADERBOARD</b>\n\n"
     )
 
 
-    for i, row in enumerate(
-        rows,
-        start=1
-    ):
+    if not rows:
 
-        name = (
-            row.get(
-                "username"
+        text += "No players yet."
+
+    else:
+
+        for i, row in enumerate(
+            rows,
+            1
+        ):
+
+            medal = "🔹"
+
+            if i == 1:
+                medal = "🥇"
+
+            elif i == 2:
+                medal = "🥈"
+
+            elif i == 3:
+                medal = "🥉"
+
+
+            text += (
+                f"{medal} {i}. "
+                f"{row.get('username') or 'Gamer'} — "
+                f"{float(row.get('note_balance', 0) or 0):.0f} NOTE "
+                f"(LV {int(row.get('level', 1) or 1)})\n"
             )
-            or "Gamer"
-        )
-
-        note = float(
-            row.get(
-                "note_balance",
-                0
-            ) or 0
-        )
-
-        level = int(
-            row.get(
-                "level",
-                1
-            ) or 1
-        )
-
-
-        medal = "🔹"
-
-        if i == 1:
-            medal = "🥇"
-
-        elif i == 2:
-            medal = "🥈"
-
-        elif i == 3:
-            medal = "🥉"
-
-
-        text += (
-            f"{medal} "
-            f"<b>{i}.</b> "
-            f"{name} — "
-            f"{note:.0f} NOTE "
-            f"(LV {level})\n"
-        )
 
 
     send_message(
@@ -2196,45 +2019,25 @@ def send_leaderboard(chat_id):
     "/api/leaderboard",
     methods=["POST"]
 )
-def api_leaderboard():
+def leaderboard_api():
 
-    try:
+    user = get_user_from_init_data()
 
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-
-                "ok": False
-
-            }), 401
-
-
-        rows = get_leaderboard()
+    if not user:
 
         return jsonify({
-
-            "ok": True,
-
-            "leaderboard":
-                rows
-
-        })
-
-
-    except Exception as e:
-
-        print(
-            "API LEADERBOARD ERROR:",
-            repr(e)
-        )
-
-        return jsonify({
-
             "ok": False
+        }), 401
 
-        }), 500
+
+    return jsonify({
+
+        "ok": True,
+
+        "leaderboard":
+            get_leaderboard()
+
+    })
 
 
 # =========================================================
@@ -2245,356 +2048,75 @@ def api_leaderboard():
     "/api/wallet",
     methods=["POST"]
 )
-def api_wallet():
+def wallet_api():
 
-    try:
+    user = get_user_from_init_data()
 
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-
-                "ok": False
-
-            }), 401
-
-
-        transactions = (
-
-            supabase
-            .table("transactions")
-            .select("*")
-            .eq(
-                "user_id",
-                user["id"]
-            )
-            .order(
-                "created_at",
-                desc=True
-            )
-            .limit(50)
-            .execute()
-        )
-
-
-        withdrawals = (
-
-            supabase
-            .table("withdrawals")
-            .select("*")
-            .eq(
-                "user_id",
-                user["id"]
-            )
-            .order(
-                "created_at",
-                desc=True
-            )
-            .limit(20)
-            .execute()
-        )
-
+    if not user:
 
         return jsonify({
-
-            "ok": True,
-
-            "user":
-                user_summary(user),
-
-            "transactions":
-                transactions.data or [],
-
-            "withdrawals":
-                withdrawals.data or []
-
-        })
+            "ok": False
+        }), 401
 
 
-    except Exception as e:
-
-        print(
-            "WALLET ERROR:",
-            repr(e)
+    tx = (
+        supabase
+        .table("transactions")
+        .select("*")
+        .eq(
+            "user_id",
+            user["id"]
         )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .limit(30)
+        .execute()
+    )
 
-        return jsonify({
 
-            "ok": False,
+    withdrawals = (
+        supabase
+        .table("withdrawals")
+        .select("*")
+        .eq(
+            "user_id",
+            user["id"]
+        )
+        .order(
+            "created_at",
+            desc=True
+        )
+        .limit(20)
+        .execute()
+    )
 
-            "error":
-                "Server error"
 
-        }), 500
+    return jsonify({
+
+        "ok": True,
+
+        "user":
+            user_summary(user),
+
+        "transactions":
+            tx.data or [],
+
+        "withdrawals":
+            withdrawals.data or []
+
+    })
 
 
 # =========================================================
-# WITHDRAW
-# =========================================================
-
-@app.route(
-    "/api/withdraw",
-    methods=["POST"]
-)
-def api_withdraw():
-
-    try:
-
-        user = get_user_from_init_data()
-
-        if not user:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Unauthorized"
-
-            }), 401
-
-
-        data = request.get_json(
-            silent=True
-        ) or {}
-
-
-        amount = float(
-            data.get(
-                "amount",
-                0
-            )
-        )
-
-        method = str(
-            data.get(
-                "method",
-                ""
-            )
-        ).strip()
-
-        payment_details = str(
-            data.get(
-                "payment_details",
-                ""
-            )
-        ).strip()
-
-
-        if amount <= 0:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Invalid amount"
-
-            }), 400
-
-
-        if not method:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Payment method required"
-
-            }), 400
-
-
-        if not payment_details:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Payment details required"
-
-            }), 400
-
-
-        note_balance = float(
-            user.get(
-                "note_balance",
-                0
-            ) or 0
-        )
-
-
-        if amount > note_balance:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Insufficient NOTE balance"
-
-            }), 400
-
-
-        # 10,000 NOTE = ₹1
-        inr_amount = (
-            amount / 10000
-        )
-
-
-        if inr_amount < 1:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Minimum withdrawal is ₹1"
-
-            }), 400
-
-
-        new_balance = (
-            note_balance
-            - amount
-        )
-
-
-        update_result = (
-
-            supabase
-            .table("users")
-            .update({
-
-                "note_balance":
-                    new_balance
-
-            })
-            .eq(
-                "id",
-                user["id"]
-            )
-            .execute()
-        )
-
-
-        if not update_result.data:
-
-            return jsonify({
-
-                "ok": False,
-
-                "error":
-                    "Could not process withdrawal"
-
-            }), 500
-
-
-        withdrawal = (
-
-            supabase
-            .table("withdrawals")
-            .insert({
-
-                "user_id":
-                    user["id"],
-
-                "note_amount":
-                    amount,
-
-                "inr_amount":
-                    inr_amount,
-
-                "payment_method":
-                    method,
-
-                "payment_details":
-                    payment_details,
-
-                "status":
-                    "pending"
-
-            })
-            .execute()
-        )
-
-
-        create_transaction(
-
-            user["id"],
-
-            "NOTE",
-
-            -amount,
-
-            "withdrawal",
-
-            "Withdrawal request"
-
-        )
-
-
-        return jsonify({
-
-            "ok": True,
-
-            "message":
-                "Withdrawal request submitted",
-
-            "amount":
-                amount,
-
-            "rupees":
-                inr_amount,
-
-            "status":
-                "pending",
-
-            "user":
-                user_summary(
-                    update_result.data[0]
-                )
-
-        })
-
-
-    except Exception as e:
-
-        print(
-            "WITHDRAW ERROR:",
-            repr(e)
-        )
-
-        return jsonify({
-
-            "ok": False,
-
-            "error":
-                "Server error"
-
-        }), 500
-
-
-# =========================================================
-# TELEGRAM WEBHOOK SETUP
+# WEBHOOK SETUP
 # =========================================================
 
 def setup_webhook():
 
     if not BOT_TOKEN:
-
-        print(
-            "⚠️ BOT TOKEN MISSING"
-        )
-
         return
-
-
-    print(
-        "Setting Telegram webhook..."
-    )
 
 
     result = telegram(
@@ -2602,16 +2124,14 @@ def setup_webhook():
         "setWebhook",
 
         {
+
             "url":
                 WEBHOOK_URL,
 
             "allowed_updates": [
                 "message",
                 "callback_query"
-            ],
-
-            "drop_pending_updates":
-                False
+            ]
 
         }
 
@@ -2625,7 +2145,7 @@ def setup_webhook():
 
 
 # =========================================================
-# STARTUP
+# START
 # =========================================================
 
 print(
@@ -2637,11 +2157,7 @@ print(
 )
 
 print(
-    "================================"
-)
-
-print(
-    "APP URL:",
+    "APP:",
     APP_URL
 )
 
@@ -2651,22 +2167,18 @@ print(
 )
 
 print(
-    "MINING:",
-    f"{MINING_HOURS} HOURS"
+    "⏱️ MINING:",
+    MINING_HOURS,
+    "HOURS"
 )
 
 print(
-    "REWARD:",
-    MINING_BASE_REWARD,
-    "NOTE"
+    "================================"
 )
+
 
 setup_webhook()
 
-
-# =========================================================
-# RUN
-# =========================================================
 
 if __name__ == "__main__":
 
